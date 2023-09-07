@@ -115,3 +115,23 @@ spec:
     - name: container
       image: kubetm/init
 ```
+
+위에서는 kubernetes.io/hostname: k8s-node1 라벨이 붙은 노드를 선택하고 있다.  
+만약 노드를 선택하지 않았다면 requests, limits에 지정한 자원의 크기에 맞게 적절한 노드를 선택하여 할당한다.  
+각 노드들 간에는 점수가 매겨져서 만약 여러 노드가 선택 가능하다면 그 중 유휴 자원이 더 많은 노드가 선택된다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-4
+spec:
+  containers:
+    - name: container
+      image: kubetm/init
+      resources:
+        requests:
+          memory: 2Gi
+        limits:
+          memory: 3Gi
+```
