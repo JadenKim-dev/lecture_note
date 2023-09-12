@@ -100,3 +100,29 @@ spec:
 ```
 
 위 예시에서는 file-c 환경변수에 cm.txt 파일 내용이 값으로 들어가고, file-s 환경변수에 secret.txt 파일 내용이 값으로 들어간다.
+
+## 컨테이너 내에 파일로 마운트
+
+ConfigMap, Secret을 사용해서 컨테이너 내에 파일을 마운트하는 방법도 있다.  
+다음과 같이 파드의 컨테이너에 마운트 설정을 한다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-mount
+spec:
+  containers:
+    - name: container
+      image: kubetm/init
+      volumeMounts:
+        - name: file-volume
+          mountPath: /mount
+  volumes:
+    - name: file-volume
+      configMap:
+        name: cm-file
+```
+
+기존의 방식에서는 변경된 ConfigMap에 맞게 환경변수 값을 수정하려면 파드를 다시 띄어야 했다.  
+위와 같이 ConfigMap을 파일로 마운트하면 내용을 수정했을 때 파드 내에도 바로 반영된다.
