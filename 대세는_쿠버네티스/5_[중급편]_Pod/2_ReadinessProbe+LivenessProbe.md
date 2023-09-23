@@ -78,3 +78,123 @@ initialDelaySeconds: 5 이므로 테스트는 최초 지연 5초 후에 시작�
 **총 3번의 실패 응답을 받은 후에는 해당 파드에 문제가 있다고 판단하고, 파드를 재시작**하게 된다.
 
 ![probe2](./images/probe2.png)
+
+## ReadinessProbe 실습
+
+다음의 구성 파일로 ReadinessProbe를 연결한 파드를 생성한다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-readiness-exec1
+  labels:
+    app: readiness
+spec:
+  containers:
+    - name: readiness
+      image: kubetm/app
+      ports:
+        - containerPort: 8080
+      readinessProbe:
+        exec:
+          command: ["cat", "/readiness/ready.txt"]
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        successThreshold: 3
+      volumeMounts:
+        - name: host-path
+          mountPath: /readiness
+  volumes:
+    - name: host-path
+      hostPath:
+        path: /tmp/readiness
+        type: DirectoryOrCreate
+  terminationGracePeriodSeconds: 0
+```
+
+container의 속성으로 readinessProbe가 추가되어 있고, 테스트할 커맨드(exec: command)와 여러 옵션들이 설정되어 있다.
+
+### 발생한 event 확인
+
+다음의 커맨드로 pod-readiness-exec1 파드를 생성하면서 발생한 이벤트를 확인할 수 있다.
+
+```bash
+$ kubectl get events -w | grep pod-readiness-exec1
+
+48s Normal Scheduled pod/pod-readiness-execl -exec1 to k8s-nodel
+47s Normal Pulling pod/pod-readiness-exec1
+43s Normal Pulled pod/pod-readiness-exec1
+43s Normal Created pod/pod-readiness-exec1
+42s Normal Started pod/pod-readiness-exec1
+4s Warning Unhealthy pod/pod-readiness-exec1 Readiness probe failed: cat: /readiness/redy.txt: No such file or directory
+4s Warning Unhealthy pod/pod-readiness-exec1 Readiness probe failed: cat: /readiness/redy.txt: No such file or directory
+```
+
+`cat /readiness/redy.txt` 실행에 실패해서 지속적으로 unhealthy warning이 발생하고 있다.
+
+### 파드의 상태 확인
+
+다음의 커맨드를 이용해서 파드의 상태를 확인한다.
+
+```bash
+$ kubectl describe pod pod-readiness-exec1 | grep -A5 Conditions
+Conditions:
+  Type             Status
+  Initialized      True
+  Ready            False
+  ContainersReady  False
+  PodScheduled     True
+```
+
+현재 Ready, ContainersReady 값이 False로 설정되어 서비스가 파드가 준비되지 않았음을 확인할 수 있다.
+
+### 서비스의 endpoints 확인
+
+다음의 커맨드를 이용해서 파드를 연결한 서비스의 endpoints 상태를 조회한다.
+
+```
+$ kubectl describe endpoints svc-readiness
+Labels : <none>
+Annotations : endpoints.kubernetes.io/last-change-trigger-time: 2023-9-15T22:15:46Z
+Subsets :
+  Addresses : <none>
+  NotReadyAddresses : 20.111.156.75
+```
+
+NotReadyAddresses에 현재 Probe에 실패한 파드의 주소가 저장되어 있다.  
+이 상태에서는 해당 파드로 트래픽이 전달되지 않는다.
+
+### 파드가 정상 작동하도록 변경
+
+이제 hostPath 볼륨에 연결된 노드의 /tmp/readiness 경로에 ready.txt 파일을 생성한다.  
+파일을 생성하면 event 목록 조회를 해도 추가로 Warning 메시지가 표시되지 않는다.
+
+파드의 상태를 조회하면 Ready, ContainersReady 값이 True가 되어 있다.
+
+```bash
+$ kubectl describe pod pod-readiness-exec1 | grep -A5 Conditions
+Conditions:
+  Type             Status
+  Initialized      True
+  Ready            True
+  ContainersReady  True
+  PodScheduled     True
+```
+
+서비스의 endpoint 상태를 확인하면 이제 Addresses에 파드의 IP가 추가되어, 정상적으로 트래픽을 전달함을 확인할 수 있다.
+
+```bash
+$ kubectl describe endpoints svc-readiness
+Labels : <none>
+Annotations : endpoints.kubernetes.io/last-change-trigger-time: 2023-12-19T21:22:26Z
+Subsets :
+  Addresses : 20.111.156.75
+  NotReadyAddresses : <none>
+```
+
+실제로 다음의 커맨드로 해당 서비스의 외부 IP에 요청을 보내면 연결된 파드에 요청이 닿는다.
+
+```bash
+while true; do date && curl 10.97.190.80:8080/hostname; sleep 1; done
+```
