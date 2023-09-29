@@ -140,3 +140,5 @@ kubectl describe limitranges --namespace=nm-5
 이 때 파드 생성 시 min, max, maxLimitRequestRatio, defaultRequest, default 설정 값이 잘 적용되는 것을 확인할 수 있다.  
 이 때 주의할 점은 하나의 ns에 여러개의 LimitRange를 적용할 경우 값에 충돌이 발생해서 예상치 못한 동작을 할 수 있다는 점이다.  
 가능하면 하나의 LimitRange만 적용해서 사용하는게 적절하다
+
+출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)

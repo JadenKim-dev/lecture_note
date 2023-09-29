@@ -110,3 +110,5 @@ spec:
 다만 외부 라이브러리가 연결되지 않아서 External IP는 발급 받지 못한 상태이다.
 ![service3](./images/service3.jpeg)
 ![service4](./images/service4.jpeg)
+
+출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)

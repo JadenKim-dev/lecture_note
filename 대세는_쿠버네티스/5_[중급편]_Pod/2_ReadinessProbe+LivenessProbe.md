@@ -198,3 +198,5 @@ Subsets :
 ```bash
 while true; do date && curl 10.97.190.80:8080/hostname; sleep 1; done
 ```
+
+출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)

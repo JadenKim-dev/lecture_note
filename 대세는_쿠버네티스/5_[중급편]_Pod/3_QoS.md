@@ -34,3 +34,5 @@ Burstable 내에서는 어떤 파드가 먼저 종료될지에 대한 우선 순
 이 때 A의 OOM은 75%이고 B의 OOM은 50%이므로, OOM이 더 높은 A 파드가 먼저 다운된다.
 
 <img src="./images/QoS4.png" width=80% />
+
+출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)

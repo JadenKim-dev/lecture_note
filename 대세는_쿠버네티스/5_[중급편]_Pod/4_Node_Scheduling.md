@@ -326,3 +326,5 @@ kubectl taint nodes k8s-node2 out-of-disk=True:NoExecute
 이제 노드2에 할당되어 있던 일반 파드들이 모두 종료된다.  
 위 파드는 `tolerationSeconds: 30` 으로 지정했기 때문에, 30초의 지연시간 후에 파드가 삭제 된다.  
 (tolerationSeconds를 지정한 파드는 해당 초만큼 지연시간 후에 삭제 되고, 그냥 Toleration만 지정한 파드는 계속 노드에 남아 있게 된다.)
+
+출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)

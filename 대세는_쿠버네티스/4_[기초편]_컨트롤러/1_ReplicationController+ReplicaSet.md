@@ -224,3 +224,5 @@ ReplicaSet에서 selector를 지정할 때 주의할 점은, **selector에서 �
 
 matchExpressions에는 여러 가지 조건을 넣는게 가능하다.  
 다만 이 경우에도 해당 조건들에 부합하는 라벨이 templete의 라벨로 등록되어 있어야 한다.
+
+출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)

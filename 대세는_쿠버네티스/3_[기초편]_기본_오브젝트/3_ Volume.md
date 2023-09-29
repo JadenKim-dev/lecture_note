@@ -277,3 +277,5 @@ spec:
 
 claimName에 원하는 PVC의 이름을 지정해서 볼륨을 정의한다.  
 volumeMounts에 해당 볼륨을 지정하면 컨테이너의 mountPath에 볼륨이 마운트된다.
+
+출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)

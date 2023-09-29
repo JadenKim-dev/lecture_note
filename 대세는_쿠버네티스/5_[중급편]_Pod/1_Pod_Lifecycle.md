@@ -44,3 +44,5 @@ Pod가 실행 종료되면 ContainerReady와 Ready가 False가 된다.
 모든 컨테이너가 Completed로 종료되어야 파드의 상태가 `Succeeded`가 된다.
 
 ![lifecycle1](./images/lifecycle1.png)
+
+출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)

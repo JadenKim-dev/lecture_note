@@ -135,3 +135,5 @@ spec:
         limits:
           memory: 3Gi
 ```
+
+출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)

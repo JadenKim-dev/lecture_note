@@ -370,3 +370,5 @@ spec:
 
 만약 위와 동일한 구성 파일에서 concurrencyPolicy만 Replace로 바꿔주면, 파드가 다른 방식으로 생성된다.  
 이 때 21분이 되면 `concurrencyPolicy: Replace`에 따라 이전에 실행 중이던 Job과 Pod는 삭제되고, 새로운 Job이 생성된다.
+
+출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)
