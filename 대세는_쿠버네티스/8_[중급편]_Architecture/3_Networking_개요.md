@@ -31,17 +31,17 @@ Service Network는 service-network-cidr 네트워크 대역에서 관리되는 �
 
 ### Service 생성 시 동작 - kube-proxy, NAT
 
-서비스가 생성되어 파드에 붙게 되면, 서비스에도 고유의 IP가 생성된다.  
-이와 동시에 마스터 노드의 kube-dns에는 서비스의 이름과 IP에 대한 도메인이 저장된다.
+서비스 객체를 생성하면 서비스에 고유의 IP가 할당된다.  
+이와 동시에 마스터 노드의 kube-dns에는 서비스에 대한 IP 도메인이 저장된다.
 
-kube-apiserver는 각 워커 노드의 kube-proxy에 각 서비스가 어느 IP에 연결되어 있는지를 알려준다.  
+kube-apiserver는 각 워커 노드의 kube-proxy에 각 서비스의 IP를 알려준다.  
 이제 kube-proxy 에서는 Service의 IP를 Pod의 IP로 변경해주는 NAT 기능을 수행해야 하는데, 이 때 kube-proxy가 iptables와 IPVS를 어떻게 다루는지에 따라서 세가지의 Proxy Mode로 나뉘게 된다.(user space, iptables, ipvs)
 
 ### Service 이름 호출 시 플로우
 
-이 상태에서 서비스의 이름을 호출하면 kube-dns를 통해 서비스의 IP를 알게 되고, 이를 이용해 NAT 영역을 호출하게 된다.  
-NAT에는 각 서비스의 파드 매핑 정보가 저장되어 있기 때문에, 이를 이용하여 Network Plugin을 통해 파드에 연결하게 된다.  
-결국 Service 객체의 동작은 NAT 영역의 기능에 달려있게 된다.
+이 상태에서 서비스의 이름을 호출하면 kube-dns를 통해 서비스의 IP를 알아내고, 이를 이용해 NAT 영역을 호출하게 된다.  
+NAT에는 각 서비스의 파드 매핑 정보가 저장되어 있기 때문에, 이를 이용하여 Network Plugin을 통해 파드에 요청을 보내게 된다.  
+결국 Service에 대한 통신은 NAT 영역의 기능에 달려있다.
 
 ### Service 삭제 시
 
