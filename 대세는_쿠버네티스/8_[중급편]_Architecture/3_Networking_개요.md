@@ -41,7 +41,7 @@ kube-apiserver는 각 워커 노드의 kube-proxy에 각 서비스의 IP를 알�
 
 이 상태에서 서비스의 이름을 호출하면 kube-dns를 통해 서비스의 IP를 알아내고, 이를 이용해 NAT 영역을 호출하게 된다.  
 NAT에는 각 서비스의 파드 매핑 정보가 저장되어 있기 때문에, 이를 이용하여 Network Plugin을 통해 파드에 요청을 보내게 된다.  
-결국 Service에 대한 통신은 NAT 영역의 기능에 달려있다.
+결국 Service를 통한 통신은 NAT 영역의 기능에 달려있다.
 
 ### Service 삭제 시
 
