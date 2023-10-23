@@ -99,7 +99,8 @@ Node-level Logging은 단일한 노드에 대해서 이루어지는 로깅이고
 #### Sidecar Container with Logging Agent
 
 마지막으로 Logging Agent를 Sidecar Container로 파드에 삽입하는 방식도 존재한다.  
-이렇게 하면 app container가 stdout으로 출력하지 않아도 agent container에 의해서 로그가 수집되고, 이를 수집 서버로 바로 보내게 된다.
+이렇게 하면 app container에서 stdout으로 출력하지 않아도 agent container가 직접 파드의 로그 파일을 참조하야 로그를 수집할 수 있다.  
+이렇게 수집한 로그를 수집 서버로 바로 보내게 된다.
 
 <img src="./images/8_Logging3.png" width=50%>
 
