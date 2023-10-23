@@ -84,7 +84,7 @@ Node-level Logging은 단일한 노드에 대해서 이루어지는 로깅이고
 #### Node Logging Agent
 
 먼저 Node Logging Agent 방식에서는 각 노드에 DaemonSet으로 Logging Agent를 두게 된다.  
-해당 에이전트는 워커 노드의 `/var/log/containers` 경로에 쌓이는 로그 파일들을 읽어올 수 있고, 또는 Docker의 Logging Drive를 수정헤서 바로 에이전트에 로그를 쏘도록 할 수도 있다.
+해당 에이전트는 워커 노드의 `/var/log/containers` 경로에 쌓이는 로그 파일들을 읽어올 수 있고, 또는 Docker의 Logging Drive를 수정해서 바로 에이전트에 로그를 쏘도록 할 수도 있다.
 
 이렇게 읽어온 로그를 로그 수집 서버인 Log Aggregater에 쏘게 된다.
 
