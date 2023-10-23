@@ -5,8 +5,8 @@
 ### Pause Container
 
 파드가 생성되면 그 안에 네트워킹을 담당하는 Pause Container가 생성된다.  
-Pause Container 에는 interface가 달려 있어서 ip를 할당 받는데, 해당 파드 내의 컨테이너들은 모두 Pause Container의 네트워크 네임스페이스를 사용하게 된다.  
-이로 인해 컨테이너들은 해당 IP를 공유하고, 각 컨테이너들을 구분할 때에는 포트 번호를 이용한다.
+Pause Container 에는 interface가 달려 있어서 ip를 할당 받는데, 해당 파드 내의 컨테이너들은 모두 Pause Container의 네트워크 인터페이스를 사용하게 된다.  
+따라서 파드 내의 컨테이너들은 동일한 IP를 공유하게 되고, 각 컨테이너들은 포트 번호를 기준으로 분리되어 통신을 받는다.   
 
 한편 Worker Node에는 `Host Network Namespace`가 존재하고, 여기에 `Host IP Interface`가 붙어있다.  
 Pause Container가 생성되면, Host Network Namespace에 가상 인터페이스가 하나 생겨서 Pause Container의 인터페이스에 연결된다.  
