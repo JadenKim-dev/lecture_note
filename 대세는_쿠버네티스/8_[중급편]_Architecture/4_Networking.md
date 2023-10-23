@@ -51,7 +51,7 @@ Overlay Network는 다른 노드에 있는 파드들 간 통신을 가능하게 
 <img src="./images/4_Networking3.png" width=50% />
 
 Calico를 사용했을 때 각각의 워커 노드에 있는 파드들이 Overlay Network를 통해 어떻게 통신하는지 예시 상황을 통해 확인해보자.
-노드 2에 있는 Pod D에서, 노드 1에 있는Pod B로 요청을 보내는 상황이다.  
+노드 2에 있는 Pod D에서, 노드 1에 있는 Pod B로 요청을 보내는 상황이다.  
 Pod B의 Ip인 20.111.156.7을 호출하면, 먼저 노드 2의 라우터의 가상 interface에서 IP를 찾게 되는데, 해당하는 IP가 라우터에 없기 때문에 Overlay Network 층으로 올라간다.  
 Calico에서는 요청한 IP의 대역이 어느 노드의 Router Network 대역인지 확인해서, 패킷을 해당 노드에 대한 IP(192.168.59.22)로 변경하고 원래의 Pod IP는 안에 숨겨둔다.  
 이를 Pod의 IP가 incapsulation 되었다고 말한다.
