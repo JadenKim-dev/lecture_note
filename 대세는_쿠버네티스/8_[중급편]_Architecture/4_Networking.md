@@ -69,21 +69,22 @@ Calico에서는 요청한 IP의 대역이 어느 노드의 Router Network 대역
 이 때 Service IP가 Service Network CIDR 범위 내에서 생성된다.  
 api-server에서는 Endpoint가 생성되었음을 감지하면, 각 노드에 실행되고 있는 DaemonSet인 kube-proxy에게 해당 Service IP가 특정 Pod IP로 포워딩 된다는 정보를 전달한다.
 
-쿠버네티스가 제공하는 Service Network의 Proxy Mode에는 3가지 종류가 있는데, 각 경우에 다르게 동작한다.
+쿠버네티스가 제공하는 Service Network의 Proxy Mode에는 3가지 종류가 있는데, 각 모드의 구성과 동작 방식에 차이가 있다.  
 
 #### Userspace Mode
 
-각각의 Worker Node에는 기본적으로 iptables가 설치되어 있는데, iptables에 Service CIDR로 들어오는 트래픽은 모두 kube-proxy에 전달하도록 설정되어 있다.  
+각각의 Worker Node에는 기본적으로 iptables가 설치되어 있다.  
+Userspace Mode에서는 iptables에 Service CIDR로 들어오는 트래픽은 모두 kube-proxy에 전달된다.  
 특정 파드에서 서비스의 IP를 호출하면, 해당 트래픽은 iptables를 거쳐서 kube-proxy로 전달되고, kube-proxy에서 자신이 가지고 있는 Service IP - Pod IP 매핑 정보를 확인해서 트래픽의 target IP를 Pod IP로 변경한다.  
 이렇게 변경된 후에는 Pod Network에 의해서 목표 Pod에 트래픽이 전달된다.
 
 Userspace Mode의 문제점은 모든 트래픽이 kube-proxy를 거쳐야 한다는 점이다.  
-kube-proxy 자체는 모든 트래픽을 감당할 만큼 성능이나 안정성이 좋지 않기 때문에 잘 쓰이지 않는 방식이다.
+kube-proxy 자체는 모든 트래픽을 감당할 만큼 성능이나 안정성이 좋지 않기 때문에 Userspace Mode는 잘 사용되지 않는다.   
 
 #### Iptables/IPVS Mode
 
 Iptables Mode에서는 kube-proxy에서 받은 Service IP - Pod IP 매핑 정보가 iptables에 등록된다.  
-이에 따라서 Service IP에 보내는 트래픽들은 모두 iptables에서 Pod IP로 변환된다.
+이에 따라서 Service IP로 보내는 트래픽들은 모두 iptables에서 Pod IP로 변환된다.
 이는 쿠버네티스를 설치했을 때 기본으로 설정되는 방식이고, 성능이나 안정성 측면에서 Userspace Mode 보다 훨씬 좋다.
 
 IPVS Mode에서는 리눅스에서 제공하는 IPVS라는 L4 로드 밸런서를 사용한다.  
@@ -92,23 +93,23 @@ IPVS Mode에서는 리눅스에서 제공하는 IPVS라는 L4 로드 밸런서�
 
 <img src="./images/4_Networking5.png" width=50% />
 
-### Service Type (ClusterIP)
+### Service Type - ClusterIP
 
 서비스의 타입(ClusterIp, NodeIp)마다 트래픽의 흐름에 차이가 있다.
 먼저 ClusterIp의 경우를 살펴보자.
 
-각 노드의 Router는 Service IP를 Pod IP로 바꿔주는 NAT 역할을 할 수 있다.  
+각 노드의 Router는 Service IP를 Pod IP로 바꿔주는 NAT 역할을 수행한다.    
 이 때 노드 2에 있는 Pod D에서 노드 1에 있는 Pod B로 요청을 보내는 상황을 예시로 들어보자.  
 Pod B에는 ClusterIp 타입의 서비스 객체가 붙어있는 상황이다.
 
-Pod D에서 Pod B에 연결된 Service IP로 요청을 보내면, Router 단에서 해당 Service IP에 매칭되는 Pod IP로 변경되고, 이것이 Overlay Network를 지나서 노드 1의 IP로 캡슐화된다.  
+Pod D에서 Pod B에 연결된 Service IP로 요청을 보내면, Router 단에서 해당 Service IP에 매칭되는 Pod IP로 변경되고, 이것이 Overlay Network에서 노드 1의 IP로 캡슐화된다.  
 여기부터는 Pod Network를 통해서 통신이 이루어진다.
 
 <img src="./images/4_Networking6.png" width=50% />
 
-### Service Type (NodePort)
+### Service Type - NodePort
 
-여기서는 동일한 상황에서 Pod B가 NodePort 타입의 서비스에 연결되어 있다고 하자.
+동일한 상황에서 Pod B가 NodePort 타입의 서비스에 연결되어 있다고 가정해보자.
 이 경우에는 모든 노드의 kube-proxy가 자신의 노드에 해당 NodePort를 열어준다.
 이 때 외부에서 해당 NodePort로 트래픽이 들어오면, iptables에서 해당 트래픽을 Calico Network Plugin(Router)로 보내준다.  
 이를 통해 트래픽이 Router로 전달되고, Router의 NAT 기능을 통해 Pod IP로 변환되면서 동일하게 Pod Network 영역으로 넘어가게 된다.
