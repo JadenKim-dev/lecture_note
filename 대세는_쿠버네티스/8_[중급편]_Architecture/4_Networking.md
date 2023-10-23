@@ -109,8 +109,8 @@ Pod D에서 Pod B에 연결된 Service IP로 요청을 보내면, Router 단에�
 
 ### Service Type - NodePort
 
-동일한 상황에서 Pod B가 NodePort 타입의 서비스에 연결되어 있다고 가정해보자.
-이 경우에는 모든 노드의 kube-proxy가 자신의 노드에 해당 NodePort를 열어준다.
+동일한 상황에서 Pod B가 NodePort 타입의 서비스에 연결되어 있다고 가정해보자.  
+이 경우에는 모든 노드의 kube-proxy가 자신의 노드에 해당 NodePort를 열어준다.  
 이 때 외부에서 해당 NodePort로 트래픽이 들어오면, iptables에서 해당 트래픽을 Calico Network Plugin(Router)로 보내준다.  
 이를 통해 트래픽이 Router로 전달되고, Router의 NAT 기능을 통해 Pod IP로 변환되면서 동일하게 Pod Network 영역으로 넘어가게 된다.
 
