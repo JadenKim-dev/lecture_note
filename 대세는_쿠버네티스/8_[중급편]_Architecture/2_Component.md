@@ -1,19 +1,19 @@
-# Component - kube-apiserver, etcd, kube-schedule, kube-proxy, kube-controlelr-manager
+# Component : kube-apiserver, etcd, kube-scheduler, kube-proxy, kube-controller-manager
 
 ## Pod 생성 플로우
 
 먼저 쿠버네티스에서 파드가 생성되는 과정을 보면서 각 Component의 역할을 확인해보자.
 
-### 마스터 노드의 Component - kube-apiserver, Etcd, kube-scheduler
+### 마스터 노드의 Component : kube-apiserver, Etcd, kube-scheduler
 
 쿠버네티스의 마스터노드에는 기본적으로 kube-apiserver, Etcd, kube-scheduler가 파드 형태로 띄어져서 실행된다.  
-`/etc/kubernetes/manifesets` 디렉토리에 각 컴포넌트의 yaml 파일이 존재하는데, 쿠버네티스 구동 시 해당 파일들을 이용해 파드가 static으로 생성된다.  
+`/etc/kubernetes/manifests` 디렉토리에 각 컴포넌트의 yaml 파일이 존재하는데, 쿠버네티스 구동 시 해당 파일들을 이용해 파드가 static으로 생성된다.  
 또한 각각의 워커 노드에는 kublet과 container runtime인 Docker가 구동된다.
 
 ### 1. kube-apiserver에 파드 생성 요청 전달, Etcd에 파드 정보 저장
 
 이러한 구성에서 사용자가 파드 생성 명령을 하면, 해당 명령이 `kube-apiserver`로 전달된다.  
-Etcd는 쿠버네티스의 여러 데이터를 저장하는 DB의 역할을 하는데, 파드 생성 시에는 Etcd에 파드의 구성 정보를 저장한다.
+Etcd는 쿠버네티스의 여러 데이터를 저장하는 DB의 역할을 하는데, 파드 생성 시 Etcd에 파드의 구성 정보를 저장한다.
 
 ### 2. kube-scheduler에서 노드 자원 상황 체크, Etcd의 파드 정보에 노드 지정
 
@@ -28,7 +28,7 @@ Etcd는 쿠버네티스의 여러 데이터를 저장하는 DB의 역할을 하�
 
 ### 4. kublet에서 kube-proxy에 네트워크 생성 요청
 
-그리고 /etc/kubernetes/manifesets 에는 `kube-proxy`라는 컨트롤러에 대한 yaml 파일도 포함되어 있는데, kube-proxy는 DaemonSet이기 때문에 각 노드에 동일하게 생성된다.  
+그리고 /etc/kubernetes/manifests 에는 `kube-proxy`라는 DaemonSet이 포함되어 있어서 각 노드에 기본으로 생성된다.  
 파드 생성 시 kubelet은 kube-proxy에 네트워크 생성을 요청하고, kube-proxy는 파드의 통신이 가능하도록 네트워크를 생성하게 된다.
 
 <img src="./images/2_Component1.png" />
