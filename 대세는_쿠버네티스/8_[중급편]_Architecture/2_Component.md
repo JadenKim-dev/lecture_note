@@ -29,15 +29,15 @@ Etcd는 쿠버네티스의 여러 데이터를 저장하는 DB의 역할을 하�
 ### 4. kublet에서 kube-proxy에 네트워크 생성 요청
 
 그리고 /etc/kubernetes/manifests 에는 `kube-proxy`라는 DaemonSet이 포함되어 있어서 각 노드에 기본으로 생성된다.  
-파드 생성 시 kubelet은 kube-proxy에 네트워크 생성을 요청하고, kube-proxy는 파드의 통신이 가능하도록 네트워크를 생성하게 된다.
+파드 생성 시 kubelet은 kube-proxy에 네트워크 생성을 요청하고, kube-proxy는 파드의 통신이 가능하도록 네트워크를 생성한다.
 
 <img src="./images/2_Component1.png" />
 
 ## Deployment 생성 플로우
 
 이번엔 Deployment 생성 플로우를 살펴보자.  
-`/etc/kubernetes/manifesets` 에는 kube-controller-manager에 대한 yaml 파일도 포함되어 있어서, 마스터 노드 상에 kube-controller-manager가 실행된다.  
-kube-controller-manager에는 컨트롤러들에 대한 기능을 담당하는 쓰레드가 실행되고 있다.
+`/etc/kubernetes/manifests` 에는 마스터 노드 상에 kube-controller-manager가 설치되도록 파일이 포함되어 있다.   
+kube-controller-manager에는 컨트롤러를 관리하는 쓰레드가 실행되고 있다.
 
 ### 1. kube-apiserver에 Deployment 생성 요청 전달, Etcd에 Deployment 정보 저장
 
@@ -47,20 +47,20 @@ kube-controller-manager에는 컨트롤러들에 대한 기능을 담당하는 �
 ### 2. kube-controller-manager의 Deployment 쓰레드에서 생성 요청 감지, ReplicaSet 생성 요청
 
 Controller Manager의 Deployment 쓰레드는 kube-apiserver에 watch를 걸어두어서 Deployment 생성 요청이 들어왔는지를 체크한다.  
-이제 Deployment 쓰레드가 생성 요청을 감지하면, Etcd에 저장된 정보를 바탕으로 kube-apiserver에 ReplicaSet 생성을 요청한다.
+Deployment 쓰레드가 생성 요청을 감지하면, Etcd에 저장된 정보를 바탕으로 kube-apiserver에 ReplicaSet 생성을 요청한다.
 
 ### 2. kube-controller-manager의 ReplicaSet 쓰레드에서 생성 요청 감지, Pod 생성 요청 -> Etcd에 Pod 정보 저장
 
-그러면 Controller Manager의 ReplicaSet 쓰레드가 해당 요청을 마찬가지로 감지해서, template에 지정된 파드를 replicas에 지정된 개수만큼 생성하도록 kube-apiserver에 요청한다.  
+그러면 Controller Manager의 ReplicaSet 쓰레드가 해당 요청을 마찬가지로 감지해서, template에 지정된 파드를 replicas 만큼 생성하도록 kube-apiserver에 요청한다.  
 이에 따라 kube-apiserver는 Etcd에 생성할 파드의 구성 정보를 저장한다.
 
 ### 3. kube-scheduler에서 노드 자원 상황 체크, Etcd의 파드 정보에 노드 지정
 
-kube-scheduler에서는 Etcd에 노드를 지정하지 않은 파드 정보가 존재함을 감지하고, 노드의 자원 상황을 체크해서 파드를 할당할 노드를 지정한다.
+kube-scheduler에서는 Etcd에 노드를 지정하지 않은 파드 정보가 존재함을 감지하고, 노드의 자원 상황을 체크해서 할당할 노드를 지정한다.
 
 ### 4. kublet에서 파드 생성 요청 확인, Docker에 컨테이너 생성 요청
 
-kublet에는 자신의 노드에 파드가 할당되었음을 감지해서, Docker에 컨테이너 생성을 요청한다.
+워커 노드의 kublet은 자신의 노드에 파드가 할당되었음을 감지해서, Docker에 컨테이너 생성을 요청한다.
 
 ### 5. kublet에서 kube-proxy에 네트워크 생성 요청
 
