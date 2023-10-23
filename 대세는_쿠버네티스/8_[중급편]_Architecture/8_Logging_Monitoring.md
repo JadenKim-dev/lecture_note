@@ -78,7 +78,7 @@ Node-level Logging은 단일한 노드에 대해서 이루어지는 로깅이고
 ### Cluster-level Logging
 
 만약 파드가 종료되는 경우에도 로그를 유지하고 싶다면 Cluster-level Logging이 필요하다.  
-쿠버네티스에서는 관련한 아키텍쳐만 제시하고 있고, 많은 모니터링 플러그인이 해당 아키텍쳐에 맞게 구현되어 있다.
+쿠버네티스에서는 관련한 아키텍쳐만 제시하고 있고, 많은 모니터링 플러그인이 해당 아키텍쳐에 맞게 구현되어 있다.  
 크게 Node Logging Agent 방식과 Sidecar Container Streaming 방식이 있다.
 
 #### Node Logging Agent
