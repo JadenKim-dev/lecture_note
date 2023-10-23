@@ -119,7 +119,7 @@ Node Plugin의 파드들은 DaemonSet을 통해서 각 노드 위에 만들어�
 csi-snapshotter는 VolumeSnapshot을 이용해서 볼륨에 대한 스냅샷을 저장한다.
 
 PV가 노드에 생성되면 해당 노드의 csi-plugin은 해당 노드에 있는 volume solution manager에 볼륨 생성을 요청하고, 해당 요청은 최종적으로 Engine에 전달되어 Engine이 Volume을 생성한다.
-이 떄 Pod를 PVC에 붙이면 VolumeAttachment라는 객체가 생기는데, csi-attatcher는 VolumeAttachment 생성을 감지하면 볼륨을 파드에 마운트하는 역할을 한다.
+이 떄 Pod를 PVC에 붙이면 VolumeAttachment라는 객체가 생기는데, csi-attacher는 VolumeAttachment 생성을 감지하면 볼륨을 파드에 마운트하는 역할을 한다.
 
 그리고 솔루션 자체적으로 제공하는 ui가 있는데(longhorn-ui), 각 노드의 manager에 붙어 있기 때문에 ui를 통해 볼륨에 대한 모니터링과 제어를 할 수 있다.  
 
