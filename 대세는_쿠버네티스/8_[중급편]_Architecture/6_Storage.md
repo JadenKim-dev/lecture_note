@@ -40,8 +40,8 @@ Volume Plugin을 `NFS`로 구성하고 외부 스토리지의 NFS 서버를 이�
 
 ### 3rd Party
 
-또한 자신들의 Volume Solution을 제공하는 회사들을 이용할 수도 있는데, PV를 통해 해당 솔루션에 바로 연결할 수 있다.  
-각 회사들이 자신들의 볼륨에 연결할 수 있는 솔루션을 오픈 소스로 공개해두었기 때문에, 이를 이용해서 연결할 수 있다. (CaphFS, Glusterfs, StorageOs)  
+또한 자신들의 Volume Solution을 제공하는 회사들을 이용하여 PV에 솔루션을 연결할 수 있다.  
+각 회사들이 자신들의 볼륨에 연결할 수 있는 솔루션을 오픈 소스로 공개해두었기 때문에, 이를 이용하면 된다. (CaphFS, Glusterfs, StorageOs)  
 솔루션에서 Provisioner를 제공하는 경우에는 dynamic provisioning을 통해 동적으로 PV를 생성할 수도 있는데, 이를 지원하는지 여부는 공식 문서에서 확인해야 한다.
 
 ### CSI(ContainerStorageInterface)
@@ -71,26 +71,25 @@ CSI는 쿠버네티스 상에 미리 스토리지 솔루션을 설치하지 않�
 `CSI`의 경우 각 기업마다 다른데, Ceph의 경우 컨테이너로 볼륨을 띄울 경우 BlockStorage, FileStorage, ObjectStorage를 모두 사용 가능하다.  
 다른 기업들은 자신의 솔루션에 맞는 볼륨 타입을 제공한다. (Longhorn - BlockStorage, OpenE8S - Block/FileStorage)
 
-자신이 사용하는 스토리지의 타입을 인지하고, 여기서 어떤 accessMode가 지원되는지를 알고 활용해야 한다.
+자신이 사용하는 스토리지의 타입을 인지하고, 각 솔루션에서 어떤 accessMode를 지원하는지 확인해야 한다.
 
 ### 각 Storage Type의 동작 방식
 
-이때 FileStorage, ObjectStorage 와 BlockStorage가 기술적으로 다르게 동작하는 부분이 있다.
+FileStorage, ObjectStorage 와 BlockStorage가 기술적으로 다르게 동작하는 부분이 있다.
 
-FileStorage, ObjectStorage는 RWO 모드를 지원하기 떄문에 한 노드 위의 여러 파드들이 연결하는 것이 가능하다.  
+FileStorage, ObjectStorage는 RWO 모드를 지원하기 때문에 한 노드 위의 여러 파드들이 동시에 연결하는 것이 가능하다.  
 또한 RWM과 ROM 모드를 지원하기 때문에 여러 노드 위의 파드들이 연결하는 것도 가능하다.
 
-이와 달리 BlockStorage는 노드 위에 스토리지를 마운팅하는 개념이기 때문에, 자신이 마운팅된 노드 위의 파드들만 연결할 수 있다.  
-그렇기 때문에 파드가 다른 노드로 이동하면 기존에 사용하던 볼륨을 사용할 수 없게 된다.
-그렇기 때문에 BlockStorage는 RWO 모드만 지원 가능하다.
+이와 달리 BlockStorage는 노드 위에 스토리지를 마운팅하는 개념이여서, 자신이 마운팅된 노드 위의 파드들만 연결할 수 있다.  
+따라서 BlockStorage는 RWO 모드만 지원 가능하고, 파드가 다른 노드로 이동하면 기존에 사용하던 볼륨을 사용할 수 없게 된다.  
 
 FileStorage, ObjectStorage는 파드가 어느 노드에 있건 스토리지를 공유할 수 있기 때문에, 공유 데이터용으로 사용한다.  
-주로 Deployment에 PV를 붙일 때 사용하게 되고, ObjectStorage는 특히 백업용이나 이미지 저장용으로 많이 사용한다.
+주로 Deployment에 PV를 붙일 때 사용하고, ObjectStorage는 특히 백업용이나 이미지 저장용으로 많이 사용한다.
 
 이와 달리 BlockStorage는 주로 DB 데이터를 저장하는 용도로 사용한다.  
-특정 노드에 마운팅된다는 점으로 인해 Read/Write가 빠르다는 장점이 있다.  
-StatefulSet은 Pod 생성 시마다 PVC를 만들기 때문에, 파드와 PVC 및 PV가 동일한 노드에 생성된다.  
-이 점으로 인해 RWO만 지원하는 BlockStorage와도 잘 호환된다.  
+특정 노드에 직접 마운팅되기 때문에 Read/Write가빨라서 DB 성능에 이점이 있다.    
+또한 DB를 구성하기 위해 주로 사용히는 StatefulSet은 RWO만 지원하는 BlockStorage와 잘 호환된다.  
+StatefulSet에서는 Pod 생성 시마다 PVC를 만들어서, 파드와 PVC 및 PV가 동일한 노드에 생성되기 때문이다.  
 실제로 대부분의 DB Solution은 BlockStorage를 사용한 StatefulSet으로 구성하는 경우가 많다.
 
 <img src="./images/6_Storage2.png">
@@ -99,9 +98,9 @@ StatefulSet은 Pod 생성 시마다 PVC를 만들기 때문에, 파드와 PVC �
 
 ### FileStorage(NFS) 실습
 
-FileStorage를 지원하는 NFS를 통해 실습해본다.  
-먼저 NFS를 직접 구축해보고, 이를 PV로 연결한 다음, label - selector를 이용해 PVC와 연결할 것이다.  
-이제 서로 다른 노드에 각각 파드를 만들어서 PVC를 마운팅한 후, FileStorage를 통한 파일 공유가 잘 이루어지는지 확인해볼 것이다.
+먼저 FileStorage를 지원하는 NFS를 통해 실습을 해본다.  
+NFS를 직접 구축해보고 이를 PV로 연결한 다음, label - selector를 이용해 PVC와 연결할 것이다.  
+그 후에는 서로 다른 노드에 각각 파드를 만들어서 PVC를 마운팅한 후, FileStorage를 통한 파일 공유가 잘 이루어지는지 확인해볼 것이다.
 
 <img src="./images/6_Storage3.png" width=50%>
 
@@ -115,13 +114,13 @@ Node Plugin의 파드들은 DaemonSet을 통해서 각 노드 위에 만들어�
 #### 볼륨이 생성되는 흐름
 
 초기에 Longhorn이라는 이름의 StorageClass가 만들어져 있다.  
-이를 이용하여 PVC를 만들면 csi-provisioner가 이를 감시하고 있다가, PVC 생성이 완료되면 이에 맞는 PV를 생성해주고, 결국 PV가 PVC에 연결된다.
-또한 csi-resizer도 PVC의 볼륨 사이즈가 변하는지를 모니터링하다가, 사용자가 볼륨의 크기를 변경하면 관련된 처리를 해주는 역할을 한다.  
+이를 이용하여 PVC를 만들면 csi-provisioner가 이를 감시하고 있다가, PVC 생성 완료 시 이에 맞는 PV를 생성해서 연결한다.
+또한 csi-resizer는 PVC의 볼륨 사이즈가 변하는지 모니터링하다가, 사용자가 볼륨의 크기를 변경하면 관련된 처리를 해준다.   
 csi-snapshotter는 VolumeSnapshot을 이용해서 볼륨에 대한 스냅샷을 저장한다.
 
-PV가 노드에 생성이 되면 해당 노드의 csi-plugin은 해당 노드에 있는 volume solution manager에 볼륨 생성을 요청하고, 해당 요청은 최종적으로 Engine에 전달되어 Engine이 Volume을 생성한다.
-이 떄 Pod를 PVC에 붙이면 VolumeAttachment라는 객체가 생기는데, csi-attatcher는 VolumeAttachment 생성을 감지하면 볼륨을 파드에 마운트하는 역할을 한다.
+PV가 노드에 생성되면 해당 노드의 csi-plugin은 해당 노드에 있는 volume solution manager에 볼륨 생성을 요청하고, 해당 요청은 최종적으로 Engine에 전달되어 Engine이 Volume을 생성한다.
+이 떄 Pod를 PVC에 붙이면 VolumeAttachment라는 객체가 생기는데, csi-attacher는 VolumeAttachment 생성을 감지하면 볼륨을 파드에 마운트하는 역할을 한다.
 
-그리고 솔루션 자체적으로 제공하는 ui가 있는데(longhorn-ui), 이는 각 노드의 manager에 붙어 있어서 볼륨에 대한 모니터링과 제어가 가능하다.
+그리고 솔루션 자체적으로 제공하는 ui가 있는데(longhorn-ui), 각 노드의 manager에 붙어 있기 때문에 ui를 통해 볼륨에 대한 모니터링과 제어를 할 수 있다.  
 
 <img src="./images/6_Storage4.png">
