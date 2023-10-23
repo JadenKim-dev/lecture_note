@@ -84,7 +84,7 @@ kube-proxy 자체는 모든 트래픽을 감당할 만큼 성능이나 안정성
 #### Iptables/IPVS Mode
 
 Iptables Mode에서는 kube-proxy에서 받은 Service IP - Pod IP 매핑 정보가 iptables에 등록된다.  
-이에 따라서 Service IP로 보내는 트래픽들은 모두 iptables에서 Pod IP로 변환된다.
+이에 따라서 Service IP로 보내는 트래픽들은 모두 iptables에서 Pod IP로 변환된다.  
 이는 쿠버네티스를 설치했을 때 기본으로 설정되는 방식이고, 성능이나 안정성 측면에서 Userspace Mode 보다 훨씬 좋다.
 
 IPVS Mode에서는 리눅스에서 제공하는 IPVS라는 L4 로드 밸런서를 사용한다.  
@@ -95,7 +95,7 @@ IPVS Mode에서는 리눅스에서 제공하는 IPVS라는 L4 로드 밸런서�
 
 ### Service Type - ClusterIP
 
-서비스의 타입(ClusterIp, NodeIp)마다 트래픽의 흐름에 차이가 있다.
+서비스의 타입(ClusterIp, NodeIp)마다 트래픽의 흐름에 차이가 있다.  
 먼저 ClusterIp의 경우를 살펴보자.
 
 각 노드의 Router는 Service IP를 Pod IP로 바꿔주는 NAT 역할을 수행한다.    
