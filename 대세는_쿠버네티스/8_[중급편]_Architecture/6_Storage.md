@@ -40,8 +40,8 @@ Volume Plugin을 `NFS`로 구성하고 외부 스토리지의 NFS 서버를 이�
 
 ### 3rd Party
 
-또한 자신들의 Volume Solution을 제공하는 회사들을 이용할 수도 있는데, PV를 통해 해당 솔루션에 바로 연결할 수 있다.  
-각 회사들이 자신들의 볼륨에 연결할 수 있는 솔루션을 오픈 소스로 공개해두었기 때문에, 이를 이용해서 연결할 수 있다. (CaphFS, Glusterfs, StorageOs)  
+또한 자신들의 Volume Solution을 제공하는 회사들을 이용하여 PV에 솔루션을 연결할 수 있다.  
+각 회사들이 자신들의 볼륨에 연결할 수 있는 솔루션을 오픈 소스로 공개해두었기 때문에, 이를 이용하면 된다. (CaphFS, Glusterfs, StorageOs)  
 솔루션에서 Provisioner를 제공하는 경우에는 dynamic provisioning을 통해 동적으로 PV를 생성할 수도 있는데, 이를 지원하는지 여부는 공식 문서에서 확인해야 한다.
 
 ### CSI(ContainerStorageInterface)
