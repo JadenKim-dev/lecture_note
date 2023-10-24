@@ -2,8 +2,8 @@
 
 ## 사용 목적
 
-**ReadinessProbe**와 **LivenessProbe**는 파드 내에 구동되는 앱의 상태를 확인하고, 이를 파드의 상태값에 반영하여 안정적인 서비스 운영이 가능하게 한다.  
-ReadinessProbe는 파드 생성 시점에서 서비스의 정상 구동 전까지 트래픽 전달을 막아주고, LivenessProbe는 파드 실행 중에 서비스 장애 감지 시 트래픽 전달을 막는다.
+**ReadinessProbe**와 **LivenessProbe**는 파드 내에 구동되는 앱의 상태를 확인하고, 이를 파드의 상태값(ContainerReady, Ready)에 반영하여 안정적인 서비스 운영이 가능하게 한다.  
+ReadinessProbe는 파드 생성 시점에서 앱의 정상 구동 전까지 트래픽 전달을 막아주고, LivenessProbe는 파드 실행 중에 서비스 장애 감지 시 트래픽 전달을 막는다.
 
 ## ReadinessProbe 개념
 
