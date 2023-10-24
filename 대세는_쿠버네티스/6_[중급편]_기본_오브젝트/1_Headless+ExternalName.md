@@ -50,7 +50,7 @@ LoadBalancer 타입으로 서비스를 생성하면 모든 노드들에서의 �
 ## DNS Server의 기본 원리
 
 쿠버네티스 클러스터 내에는 DNS Server가 존재한다.  
-DNS Server에는 각 서비스 객체의 이름과 IP가 매칭되어 저장되어 있고, 서비스의 이름으로 질의를 하면 해당 서비스의 IP를 얻을 수 있다.  
+DNS Server에는 각 서비스 객체의 이름과 IP가 매핑되어 저장되어 있고, 서비스의 이름으로 질의를 하면 해당 서비스의 IP를 얻을 수 있다.  
 
 이 때 각 파드들은 쿠버네티스 클러스터 외부에 있는 domain name에 대해서도 질의를 할 수 있다.  
 예를 들어 내부망(192.168.\*)에 존재하는 서버의 도메인 이름으로 질의를 하게 되면, DNS Server의 위계 구조에 따라 클러스터 내의 DNS Server에 먼저 질의하게 된다.  
@@ -61,7 +61,7 @@ DNS Server에는 각 서비스 객체의 이름과 IP가 매칭되어 저장되�
 
 ## headless 서비스
 
-headless 서비스에 파드를 연결하면, 클러스터 내의 DNS 서버에서 `pod이름.service이름` 형식으로 파드의 IP를 질의하는 것이 가능하다.   
+headless 서비스에 파드를 연결하면, 클러스터 내의 DNS 서버에서 `[pod 이름].[service 이름]` 형식으로 파드의 IP를 질의하는 것이 가능하다.   
 
 <img src="./images/headless4.png" width=50% />
 
@@ -70,9 +70,9 @@ headless 서비스에 파드를 연결하면, 클러스터 내의 DNS 서버에�
 일반적인 상황에서 ClusterIP 타입의 서비스를 만들어서 파드를 연결했다고 하자.  
 이 때 서비스와 파드들은 각자 이름이 존재하고, 각자 IP를 할당받는다.
 
-클러스터 내부의 DNS Server(cluster.local)에는 이러한 각 파드와 서비스의 IP 정보릏 저장한다.  
+클러스터 내부의 DNS Server(cluster.local)에는 이러한 각 파드와 서비스의 IP 정보를 저장한다.  
 이 때 FQDN(Fully Qualified Domain Name) 형태로 도메인 이름을 저장하는데, 서비스의 경우 `[Service이름].[Namespace].svc.[DNS이름]` 형태로 저장되고, 파드의 경우 `[PodIP].[Namespace].pod.[DNS이름]` 형태로 저장된다.  
-서비스의 경우 서비스 이름만으로 질의를 할 수 있기 때문에, 서비스의 이름을 파드에서 사용하면 간편하게 서비스의 데이터를 받아올 수 있다.
+서비스에 대한 IP의 경우 FQDN 대신 서비스 이름만으로 질의를 할 수 있다.  
 이와 달리 파드의 경우 전체 이름으로 질의를 해야 하는데, 파드 IP가 포함된 형태이다 보니 활용하기가 어렵다.
 
 <img src="./images/headless6.png" />
