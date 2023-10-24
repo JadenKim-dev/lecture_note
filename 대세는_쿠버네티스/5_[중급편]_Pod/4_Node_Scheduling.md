@@ -161,8 +161,7 @@ spec:
 
 ### PodAffinity
 
-PodAffinity 파드를 확인해보기 위해, 먼저 특정 노드에 파드를 생성한다.  
-다음의 커맨드를 통해 node1에 a-team=1, node2에 a-team=2 라벨을 붙인다.
+PodAffinity를 실습해보기 위해, 먼저 다음의 커맨드를 통해 node1에 a-team=1, node2에 a-team=2 라벨을 붙인다.
 
 ```bash
 kubectl label nodes k8s-node1 a-team=1
