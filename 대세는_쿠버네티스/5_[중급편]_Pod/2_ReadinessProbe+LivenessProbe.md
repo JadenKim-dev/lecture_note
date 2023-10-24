@@ -42,7 +42,7 @@ ReadinessProbe와 LivenessProbe는 설정 가능한 옵션이 비슷하다.
 
 ### 설정 옵션
 
-/readiness 경로로 hostPath 볼륨을 연결해 두고, 해당 경로에 ready.txt 파일이 존재하는지 확인하는 ReadinessProbe를 파드에 연결한다고 하자.  
+/readiness 경로로 hostPath 볼륨을 연결해 두고, 해당 경로에 ready.txt 파일이 존재하는지 확인하는 ReadinessProbe를 적용하여 파드를 생성한다고 하자.  
 이 때 exec command에는 파일 내용을 확인하는 커맨드인 cat /readiness/ready.txt 를 등록하면 된다.  
 옵션은 initialDelaySeconds: 5, periodSeconds: 10, successThreshold: 3 으로 설정한다.
 
@@ -81,7 +81,7 @@ initialDelaySeconds: 5 이므로 테스트는 최초 지연 5초 후에 시작�
 
 ## ReadinessProbe 실습
 
-다음의 구성 파일로 ReadinessProbe를 연결한 파드를 생성한다.
+다음의 구성 파일로 ReadinessProbe를 적용한 파드를 생성한다.
 
 ```yaml
 apiVersion: v1
