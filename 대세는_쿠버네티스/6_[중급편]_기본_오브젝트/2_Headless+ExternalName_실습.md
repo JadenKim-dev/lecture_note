@@ -217,7 +217,7 @@ $ curl -O endpoint3/kubetm/kubetm.github.io/blob/master/sample/practice/intermed
 
 ## ExternalName
 
-ExternalName 타입의 서비스를 이용하면 외부 서비스의 도메인 이름만으로 간단하게 서비스를 외부 도메인에 연결할 수 있다.  
+서비스의 externalName 속성값에 외부 서비스의 도메인 이름을 지정하여 간단하게 서비스를 외부 도메인에 연결할 수 있다.  
 먼저 다음의 구성 파일로 서비스를 생성한다.
 
 ```yaml
