@@ -58,9 +58,9 @@ spec:
   clusterIP: None
 ```
 
-이제 다음의 구성 파일로 headless 서비스에 연결한 파드를 생성한다.
+이제 다음의 구성 파일로 headless 서비스에 연결한 파드를 생성한다.  
 hostname에 pod name과 다른 값을 지정했고, subdomain에 headless service의 이름을 지정했다.  
-(여기서 지정한 hostname으로 DNS Server에 질의하게 된다.)
+(여기서 지정한 hostname으로 DNS Server에 등록된다.)
 
 ```yaml
 apiVersion: v1
