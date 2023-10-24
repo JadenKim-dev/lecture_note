@@ -28,7 +28,7 @@ InitContainer 커맨드 실행까지 성공적으로 마쳤을 경우 `Initializ
 지금까지의 단계에서 컨테이너의 status는 Waiting, reason은 ContainerCreating으로 지정되어 있다.
 
 이제 컨테이너 생성을 시작하기 위해 이미지를 다운로드한다.  
-이미지를 이용하여 파드 내에 컨테이너가 정상적으로 실행이 되면 컨테이너들의 상태가 `Running`이 되고, `ContainerReady`와 `Ready` 값이 True가 된다.  
+이미지를 이용하여 파드 내에 컨테이너가 정상적으로 실행이 되면 컨테이너들의 상태가 `Running`이 되고, 파드의 `ContainerReady`와 `Ready` 상태값이 True가 된다.  
 만약 컨테이너 실행 과정에서 문제가 발생하면 컨테이너의 상태가 `Waiting`이 되고, reason이 `CrashLoopBackOff`로 표시된다.
 
 이 때 주의할 점은 **컨테이너 실행이 실패해도 파드의 phase는 여전히 Running이라는 점**이다.  
