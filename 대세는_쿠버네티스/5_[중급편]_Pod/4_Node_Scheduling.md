@@ -27,7 +27,7 @@ NodeAffinity에는 matchExpressions 속성을 통해 라벨의 key나 value를 �
 만약 조건을 충족하는 노드가 없으면 할당을 하지 못하게 되고, 파드는 pending 상태가 된다.  
 이와 달리 `preferred` 조건을 달면 matchExpressions가 우선 순위로만 역할을 하게 되어, 조건을 충족하는 노드가 없더라도 파드가 할당될 수 있다.
 
-추가적으로, matchExpressions를 여러개 지정하고 각 조건에 가중치를 부여하는 것도 가능하다.
+추가적으로, matchExpressions를 여러개 지정하고 각 조건에 가중치를 부여하는 것도 가능하다.  
 `preferred: weight`로 가중치 값을 부여하면, 스케줄러가 cpu, memory 등의 자원 상황과 가중치 값을 함께 고려하여 할당할 노드를 선택한다.
 
 <img src="./images/NodeScheduling4.png" />
