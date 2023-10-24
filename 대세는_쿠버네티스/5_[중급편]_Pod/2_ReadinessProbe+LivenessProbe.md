@@ -127,11 +127,11 @@ $ kubectl get events -w | grep pod-readiness-exec1
 43s Normal Pulled pod/pod-readiness-exec1
 43s Normal Created pod/pod-readiness-exec1
 42s Normal Started pod/pod-readiness-exec1
-4s Warning Unhealthy pod/pod-readiness-exec1 Readiness probe failed: cat: /readiness/redy.txt: No such file or directory
-4s Warning Unhealthy pod/pod-readiness-exec1 Readiness probe failed: cat: /readiness/redy.txt: No such file or directory
+4s Warning Unhealthy pod/pod-readiness-exec1 Readiness probe failed: cat: /readiness/ready.txt: No such file or directory
+4s Warning Unhealthy pod/pod-readiness-exec1 Readiness probe failed: cat: /readiness/ready.txt: No such file or directory
 ```
 
-`cat /readiness/redy.txt` 실행에 실패해서 지속적으로 unhealthy warning이 발생하고 있다.
+`cat /readiness/ready.txt` 실행에 실패해서 지속적으로 unhealthy warning이 발생하고 있다.
 
 ### 파드의 상태 확인
 
