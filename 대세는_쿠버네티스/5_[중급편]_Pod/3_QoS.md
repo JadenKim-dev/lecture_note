@@ -1,4 +1,4 @@
-# QoS
+# QoS (Quality of Service)
 
 ## 필요한 상황
 
