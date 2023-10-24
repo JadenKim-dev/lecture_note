@@ -90,8 +90,8 @@ DNS Server에는 `[Pod hostname].[Service 이름].[Namespace].svc.[DNS 이름]` 
 
 ## ExternerName
 
-또한 ExternerName 타입의 서비스를 만들고 그 안에 외부 서비스 주소를 넣으면, 해당 서비스를 통해 외부 서비스에 요청을 보낼 수 있다.  
-이 때 요청을 보낼 주소를 변경해야 한다면 간단하게 ExternalName 서비스의 주소 값만 변경하는 것으로 대처가 가능하다.
+또한 서비스의 externerName 속성에 외부 서비스 주소를 넣으면, 해당 서비스를 통해 외부 서비스에 요청을 보낼 수 있다.  
+이 때 요청을 보낼 주소를 변경해야 한다면 간단하게 externalName 속성 값만 변경하는 것으로 대처가 가능하다.
 
 <img src="./images/headless5.png" />
 
@@ -99,17 +99,17 @@ DNS Server에는 `[Pod hostname].[Service 이름].[Namespace].svc.[DNS 이름]` 
 
 Endpoint를 먼저 알고 나면 ExternalName을 이해하는게 더 수월하다.  
 서비스의 이름과 동일한 이름으로 Endpoint를 만들고, 그 안에 연결할 파드의 IP 정보를 삽입하면 서비스에 파드가 연결된다.  
-지금까지 파드를 서비스에 연결할 때 label을 통해서 연결해왔는데, 내부적으로는 Endpoint라는 객체를 만들어서 연결하게 된다.
+지금까지 파드를 서비스에 연결할 때 label을 통해서 연결해 왔는데, 내부적으로는 Endpoint라는 객체를 만들어서 연결한다.  
 직접 Endpoint 객체를 만들어도 동일한 식으로 연결할 수 있고, 외부 서비스의 IP를 Endpoint에 저장해서 외부 서비스에 연결하는 것도 가능하다.
 
 <img src="./images/headless8.png" width=50% />
 
-### externalName을 사용하는 이유
+### ExternalName을 사용하는 이유
 
-위에서 설명한 것처럼 Endpoint를 통해서 외부 서비스에 연결하는 것도 가능하다.  
-다만 서비스의 IP는 언제든 변경될 수 있기 때문에, Domain Name으로 외부 서비스에 대한 연결을 관리할 필요가 있다.
+위에서 설명한 것처럼 Endpoint에 외부 서비스 IP를 직접 등록해서 연결하는 것도 가능하다.  
+다만 서비스의 IP는 언제든 변경될 수 있기 때문에, 외부 서비스의 Domain Name으로 연결을 관리할 필요가 있다.
 
 서비스의 externalName 속성에 외부 서비스의 domain name을 지정하면, DNS cache를 통해 DNS Server에 질의를 해서 IP를 받아온다.  
-파드에서는 해당 서비스에 요청을 보내면 외부 서비스에 요청을 보낼 수 있고, 요청을 보내는 주소를 변경하고자 할 때에도 서비스의 externalName 속성 값만 변경하면 된다.
+해당 서비스에 요청을 보내면 외부 서비스에 요청을 보낼 수 있고, 요청을 보내는 주소 도메인을 변경하고자 할 때에도 서비스의 externalName 속성 값만 변경하면 된다.
 
 <img src="./images/headless9.png" width=50% />
