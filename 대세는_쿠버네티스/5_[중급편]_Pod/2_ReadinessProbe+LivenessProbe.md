@@ -253,6 +253,7 @@ spec:
   terminationGracePeriodSeconds: 0
 ```
 
+컨테이너의 속성으로 livenessProbe 가 추가되어 있고, http 요청으로 파드 상태를 체크하기 위한 설정들이(path, port) 포함되어 있다.  
 
 
 출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)
