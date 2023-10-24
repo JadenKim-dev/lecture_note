@@ -81,9 +81,9 @@ headless 서비스에 파드를 연결하면, 클러스터 내의 DNS 서버에�
 
 headless 서비스를 만들기 위해서는 서비스를 생성할 때 clusterIP에 None을 넣어주면 된다.  
 그리고 파드를 생성할 때 hostname에 원하는 이름, subdomain에 headless 서비스의 이름을 지정하면 서비스에 파드를 연결할 수 있다.  
-이 때 DNS Server에는 `[Pod hostname].[Service 이름].[Namespace].svc.[DNS 이름]` 형태로 domain name이 저장된다.  
-해당 domain name으로 질의를 하여 IP를 받아오면 파드에 직접 연결하는 것이 가능하다.  
-이 때 `[Pod hostname].[Service 이름]` 형태로 질의하는 것도 가능하기 때문에, 간편하게 사용할 수 있다.
+
+DNS Server에는 `[Pod hostname].[Service 이름].[Namespace].svc.[DNS 이름]` 형태로 domain name이 저장된다.   
+이 때 `[Pod hostname].[Service 이름]` 형태로 질의하는 것도 가능하기 때문에, 간편하게 파드에 요청을 보낼 수 있다.  
 (headless 서비스의 domain name으로 질의하면, 등록되어 있는 파드들의 IP 주소 목록이 반환된다.)
 
 <img src="./images/headless7.png" width=50% />
