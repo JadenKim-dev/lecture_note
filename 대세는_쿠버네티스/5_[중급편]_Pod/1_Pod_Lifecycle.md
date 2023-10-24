@@ -40,8 +40,8 @@ Job에 의해 생성된 경우에는 작업의 성공 여부에 대한 상태를
 Pod가 실행 종료되면 ContainerReady와 Ready가 False가 된다.  
 컨테이너가 종료되면서 컨테이너 상태가 `Terminated`로 바뀌는데, 이 때 reason이 `Completed`이면 정상 실행된 것이고 `Error`이면 실행에 실패한 것이다.
 
-만약 파드 내에 실행한 컨테이너 중 하나라도 Error로 종료되면 파드의 상태가 `Failed`가 된다.  
-모든 컨테이너가 Completed로 종료되어야 파드의 상태가 `Succeeded`가 된다.
+만약 파드 내에 실행한 컨테이너 중 하나라도 Error로 종료되면 파드의 phase가 `Failed`가 된다.  
+모든 컨테이너가 Completed로 종료되어야 파드의 phase가 `Succeeded`가 된다.
 
 ![lifecycle1](./images/lifecycle1.png)
 
