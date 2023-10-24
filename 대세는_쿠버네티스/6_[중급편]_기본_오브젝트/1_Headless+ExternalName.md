@@ -88,10 +88,10 @@ DNS Server에는 `[Pod hostname].[Service 이름].[Namespace].svc.[DNS 이름]` 
 
 <img src="./images/headless7.png" width=50% />
 
-## externerName
+## ExternerName
 
-또한 ExternerName 타입의 서비스를 만들고 그 안에 외부 서비스 주소를 넣으면, 파드는 해당 서비스를 통해 외부 서비스에 요청을 보낼 수 있다.  
-이 때 외부 서비스의 주소를 변경해야 한다면 간단하게 서비스의 주소 값만 변경하는 것으로 대처가 가능하다.
+또한 ExternerName 타입의 서비스를 만들고 그 안에 외부 서비스 주소를 넣으면, 해당 서비스를 통해 외부 서비스에 요청을 보낼 수 있다.  
+이 때 요청을 보낼 주소를 변경해야 한다면 간단하게 ExternalName 서비스의 주소 값만 변경하는 것으로 대처가 가능하다.
 
 <img src="./images/headless5.png" />
 
