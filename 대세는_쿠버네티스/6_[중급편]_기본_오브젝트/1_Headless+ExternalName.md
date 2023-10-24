@@ -61,8 +61,7 @@ DNS Server에는 각 서비스 객체의 이름과 IP가 매칭되어 저장되�
 
 ## headless 서비스
 
-이 때 headless 서비스를 이용하면, 클러스터 내의 DNS 서버를 통해 파드의 IP를 질의하는 것이 가능하다.  
-headless 서비스에 파드를 연결하면, `pod이름.service이름` 형식으로 파드의 IP를 질의할 수 있다.
+headless 서비스에 파드를 연결하면, 클러스터 내의 DNS 서버에서 `pod이름.service이름` 형식으로 파드의 IP를 질의하는 것이 가능하다.   
 
 <img src="./images/headless4.png" width=50% />
 
