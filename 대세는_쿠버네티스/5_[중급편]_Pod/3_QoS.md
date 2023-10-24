@@ -21,8 +21,9 @@
 QoS를 관리하는 별도의 객체가 있는 것은 아니고, 파드의 requests와 limits에 지정한 값에 따라 QoS Class가 결정된다.
 
 만약 파드 내의 모든 컨테이너에 requests, limits가 둘 다 설정되어 있고, 각 컨테이너 내에서 requests와 limits에 지정한 값이 동일하다면 `Guaranted`가 된다.  
-만약 requests와 limits가 모두 설정되어 있지 않다면 `BestEffort`가 된다.
-그 외의 경우들은 `Burstable`로 간주되는데, requests와 limits에 지정한 값이 다르거나, requests만 지정되거나, 일부 컨테이너에 requests/limits가 지정되지 않은 등의 경우가 포함된다.
+만약 requests와 limits가 모두 설정되어 있지 않다면 `BestEffort`가 된다.  
+그 외의 경우들은 `Burstable`로 간주된다.  
+requests와 limits에 지정한 값이 다르거나, requests만 지정되거나, 일부 컨테이너에 requests/limits가 지정되지 않은 등의 경우가 포함된다.
 
 <img src="./images/QoS3.png" width=80% />
 
