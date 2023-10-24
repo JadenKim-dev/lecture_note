@@ -27,10 +27,10 @@ requests와 limits에 지정한 값이 다르거나, requests만 지정되거나
 
 <img src="./images/QoS3.png" width=80% />
 
-## Burstable 내 OOM Score
+## Burstable 클래스의 OOM Score
 
-Burstable 내에서는 어떤 파드가 먼저 종료될지에 대한 우선 순위도 존재한다.  
-`OOM(Out Of Memory) Score`를 기준으로 판단하는데, 이는 requests에 지정된 메모리를 기준으로 몇 퍼센트만큼 메모리를 사용하는지 계산한 값이다.
+Burstable 파드 중에는 어떤 파드가 먼저 종료될지에 대한 우선 순위를 `OOM(Out Of Memory) Score`를 기준으로 판단한다.  
+이는 requests에 지정된 메모리를 기준으로 몇 퍼센트만큼 메모리를 사용하고 있는지 계산한 값으로, OOM Score가 더 높은 파드가 먼저 삭제된다.  
 예를 들어 A, B 두 파드에서 동일하게 4G의 메모리를 사용하고 있을 때 A의 request 메모리가 5G이고 B가 8G였다고 하자.  
 이 때 A의 OOM은 75%이고 B의 OOM은 50%이므로, OOM이 더 높은 A 파드가 먼저 다운된다.
 
