@@ -10,7 +10,7 @@
 conditions에는 `Initialized`, `PodScheduled`, `ContainerReady`, `Ready` 가 존재하며, 각각의 조건의 status가 True / False로 표시된다.
 **reason**에는 해당 상태의 원인이 적혀있다. (ex. `ContainersNotReady`, `PodCompleted`)
 
-또한 파드 내에 생성된 컨테이너의 상태값도 존재하며, **state**(`waiting`, `Running`, `Terminated`)와 **reason**(`ContainerCreating`, `CrashLoopBackOff`, `Error`, `Completed`) 값으로 구성되어 있다.
+또한 파드 내에 생성된 컨테이너의 상태값도 존재하며, **state**(`Waiting`, `Running`, `Terminated`)와 **reason**(`ContainerCreating`, `CrashLoopBackOff`, `Error`, `Completed`) 값으로 구성되어 있다.
 
 ## 파드의 라이프사이클 흐름
 
