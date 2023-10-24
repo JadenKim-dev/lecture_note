@@ -2,11 +2,11 @@
 
 쿠버네티스에서 Logging은 앱의 로그 데이터를 다루고, Monitoring은 엡의 cpu, memory 사용을 다룬다.
 
-## Core Plugin vs Service Plugin
+## Core Pipeline vs Service Pipeline
 
-이 때 쿠버네티스가 기본으로 제공하는 Core Pipeline이 있고, 추가적인 플러그인을 설치한 Service Plugin이 있다.
+이 때 쿠버네티스가 기본으로 제공하는 Core Pipeline이 있고, 추가적인 플러그인을 설치한 Service Pipeline이 있다.
 
-### Core Plugin
+### Core Pipeline
 
 #### 워커 노드의 기본 컴포넌트
 
@@ -14,7 +14,7 @@
 kublet이 파드 생성 요청을 받으면 Container Runtime에 파드의 컨테이너 생성을 요청한다 (보통 Docker를 사용)  
 Docker에서는 컨테이너를 구동하면서 CPU/Memory 자원을 사용하는 동시에, 데이터를 쓰거나 로그를 저장하면서 Disk를 사용한다.
 
-#### Core Plugin을 통한 모니터링/로깅
+#### Core Pipeline을 통한 모니터링/로깅
 
 이러한 기반 위에서 Core Pipeline을 통한 모니터링/로깅을 설명하겠다.
 
@@ -24,9 +24,9 @@ Docker에서는 컨테이너를 구동하면서 CPU/Memory 자원을 사용하�
 
 또한 kubectl log 명령어로 컨테이너의 로그 정보를 조회할 수 있는데, 그러면 kublet을 통해 해당 컨테이너의 로그 파일을 확인하게 된다.
 
-### Service Plugin
+### Service Pipeline
 
-Service Plugin은 별도의 플러그인을 설치해서 사용한다.
+Service Pipeline은 별도의 플러그인을 설치해서 사용한다.
 
 먼저 각 워커 노드에 설치되어 데이터를 가져오기 위해 DaemonSet으로 Agent 영역을 설치한다.  
 해당 Agent 영역에서 Container Runtime이나 cAdviser, 워커 노드를 통해 로그와 리소스 정보를 수집한다.
@@ -36,7 +36,7 @@ Service Plugin은 별도의 플러그인을 설치해서 사용한다.
 
 이제 마지막으로 WebUI가 수집 서버로 쿼리를 해서 필요한 정보를 보여주게 된다.
 
-Service Plugin의 대표적인 제품으로 Elastic, Loki, Prometheus 등이 있다.
+Service Pipeline을 지원하는 대표적인 제품으로 Elastic, Loki, Prometheus 등이 있다.
 
 <img src="./images/8_Logging1.png">
 
