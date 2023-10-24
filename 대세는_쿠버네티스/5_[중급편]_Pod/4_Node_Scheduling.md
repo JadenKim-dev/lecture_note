@@ -61,7 +61,7 @@ topologyKey는 podAntiAffinity에도 동일하게 사용된다.
 
 `Taint`는 특정 노드에 아무 파드나 할당되지 않도록 노드에 주는 속성이다.  
 Taint 속성을 부여한 노드는 일반작인 스케줄링으로는 할당이 되지 않는다. (nodeName으로 직접 할당해도 미찬가지)  
-파드에 `Toleration` 속성이 부여된 경우에만 해당 파드에 할당될 수 있다.  
+파드에 매칭되는 `Toleration` 속성이 부여된 경우에만 해당 파드에 할당될 수 있다.  
 고사양 작업을 수행하기 위해 노드에 GPU가 설치되어 있는 등 특정 파드만 해당 노드에 할당할 필요가 있을 때 사용한다.
 
 <img src="./images/NodeScheduling3.png" width=50% />
@@ -72,26 +72,26 @@ Taint 속성을 부여한 노드는 일반작인 스케줄링으로는 할당이
 
 effect에 `NoSchedule`을 지정하면 일반적인 파드는 해당 노드에 스케줄 될 수 없다.  
 매칭되는 key, value, effect 값을 가진 Toleration이 파드에 적용되어 있어야 할당될 수 있다.  
-(단, 매칭되는 Toleration이 적용되어 있다고 해서 해당 노드에 할당 되는 것이 보장되지는 않는다.
-해당 노드에 할당시키기 위해서는 nodeSelector 등으로 노드를 선택해야 한다)  
+(단, 매칭되는 Toleration이 적용되어 있다고 해서 해당 노드에 할당 되는 것이 보장되지는 않는다.  
+해당 노드에 할당시키기 위해서는 nodeSelector 등으로 노드를 선택해야 한다.)  
 Toleration의 operation에는 equal, exists 중 하나를 적용할 수 있다.
 
-effect에는 `preferNoSchedule`을 적용할 수도 있다.
+effect에는 `preferNoSchedule`을 적용할 수도 있다.  
 이 때에는 Toleration 적용이 안 된 파드는 가능한 해당 노드에 할당이 되지 않지만, 다른 노드가 사용 불가능인 상황에서는 할당이 될 수도 있다.
 
-또한 `NoExecute`를 적용하는 것도 가능하다.
-다른 effect의 경우 노드에 Taint를 적용한다고 해서 노드의 기존에 실행중인 파드에는 영향이 가지 않는다.  
+또한 `NoExecute`를 적용하는 것도 가능하다.  
+다른 effect의 경우 노드에 Taint를 적용한다고 해서 노드의 기존에 실행 중인 파드에는 영향이 가지 않는다.  
 이와 달리 NoExecute는 기존에 존재하는 파드들 중 기준에 맞지 않는 파드들은 강제 종료시킨다.  
-이 때 매칭되는 파드의 Toleration에 `tolerationSeconds`를 적용할 수 있는데, 해당 파드는 노드에 할당된 뒤 해당 초 만큼은 실행되다가 이후 종료된다.
+이 때 매칭되는 파드의 Toleration에 `tolerationSeconds`를 적용할 수 있는데, 해당 파드는 노드에 할당된 뒤 해당 초 만큼만 실행되다가 이후 종료된다.
 
-### Taint 사용 예시
+### Taint 사용 사례
 
 Taint는 쿠버네티스에서 기본적으로 많이 사용되는 속성이다.
 
-예를 들어 Master 노드에는 NoSchedule Taint가 적용되어 있어서 파드를 할당 받을 수 없게 설정되어 있다.
+예를 들어 Master 노드에는 NoSchedule Taint가 적용되어 있어서 일빈작인 파드는 할당 받을 수 없게 설정되어 있다.
 
-또한 특정 노드에 문제가 발생했다는 것이 감지되면, 해당 노드에 할당된 파드의 정상 실행을 보장할 수 없기 때문에 노드에 NoExecute Taint가 적용된다.  
-해당 노드에 파드를 실행 중이었던 ReplicaSet은 다른 노드에 파드를 다시 생성해서 서비스를 정상적으로 유지할 수 있다.
+또한 특정 노드에 문제가 발생했다는 것이 감지되면, 노드에 NoExecute Taint를 적용해서 기존의 파드를 모두 삭제하고 더 이상 파드가 할당되지 않게 한다.  
+이를 통해 해당 노드에 파드를 실행 중이었던 ReplicaSet은 다른 노드에 파드를 다시 생성해서 서비스를 정상적으로 유지할 수 있다.
 
 ## NodeAffinity - MatchExpressions 실습
 
