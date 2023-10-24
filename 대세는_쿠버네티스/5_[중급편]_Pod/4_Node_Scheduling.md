@@ -38,7 +38,7 @@ NodeAffinity에는 matchExpressions 속성을 통해 라벨의 key나 value를 �
 `PodAffinity`는 특정 노드에만 파드를 할당시키는 옵션으로, 예를 들어 hostPath 볼륨을 공유해서 사용해야 하는 등 모든 파드가 동일한 노드에 할당되어야 할 때 사용한다.
 
 먼저 하나의 파드가 다른 노드에 할당되어 pv가 만들어진 상태라고 하자.  
-새로운 파드를 생성할 때 기존 파드와 동일한 라벨을 달고 PodAffinity 속성을 줘서 생성하면, 기존 파드와 동일한 노드에 할당되어 hostPath 볼륨을 함께 사용할 수 있다.
+새로운 파드를 생성할 때 PodAffinity 속성을 주고 matchExpressions에 기존 파드의 라벨을 선택하는 표현식을 주게 되면, 기존 파드와 동일한 노드에 파드가 할당되어 hostPath 볼륨을 함께 사용할 수 있다.
 
 이와 달리 `AntiAffinity` 속성을 주면 반드시 기존 파드와 다른 노드에 파드가 생성된다.  
 보통 Master - Slave 관계에서 하나를 백업 파드로 사용해야 할 때, 다른 노드에 백업 파드를 위치시키기 위해 사용한다.
@@ -47,11 +47,12 @@ NodeAffinity에는 matchExpressions 속성을 통해 라벨의 key나 value를 �
 
 ### 자세한 설정 방법
 
-podAffinity는 파드의 라벨을 이용해서 스케줄링 조건을 지정한다.
+podAffinity는 파드의 라벨을 이용해서 스케줄링 조건을 지정한다.  
 matchExpressions를 통해 파드 선택 조건을 지정해서, 해당 파드가 할당된 노드를 선택한다. (required, preferred 옵션 사용 가능)  
-이 때 topologyKey의 키를 가지고 있는 노드들에서 파드를 검색하기 때문에, 만약 해당 topologyKey를 가지고 있지 않은 노드에 이전 파드가 할당되어 있다면 파드가 할당되지 못한다.
+이 때 topologyKey를 라벨의 키로 가지고 있는 노드들에서 파드를 검색한다.  
+만약 해당 topologyKey를 가지고 있지 않은 노드에 이전 파드가 할당되어 있다면 파드가 할당되지 못한다.
 
-podAntiAffinity에도 마찬가지로 matchExpressions를 지정하고, 이 때에는 선택된 파드가 속하지 않은 노드로 파드가 할당된다.
+podAntiAffinity에도 마찬가지로 matchExpressions를 지정하고, 이 때에는 선택된 파드가 속하지 않은 노드로 파드가 할당된다.  
 topologyKey는 podAntiAffinity에도 동일하게 사용된다.
 
 <img src="./images/NodeScheduling5.png" width=50% />
