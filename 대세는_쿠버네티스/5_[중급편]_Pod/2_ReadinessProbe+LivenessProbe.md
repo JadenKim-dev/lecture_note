@@ -81,7 +81,21 @@ initialDelaySeconds: 5 이므로 테스트는 최초 지연 5초 후에 시작�
 
 ## ReadinessProbe 실습
 
-다음의 구성 파일로 ReadinessProbe를 적용한 파드를 생성한다.
+다음의 구성 파일로 ReadinessProbe를 적용한 파드를 생성하고, 여기에 연결할 Service를 생성한다.
+
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-readiness
+spec:
+  selector:
+    app: readiness
+  ports:
+  - port: 8080
+    targetPort: 8080
+```
 
 ```yaml
 apiVersion: v1
@@ -198,5 +212,47 @@ Subsets :
 ```bash
 while true; do date && curl 10.97.190.80:8080/hostname; sleep 1; done
 ```
+
+## LivenessProbe 실습
+
+다음의 구성파일로 LivenessProbe를 적용한 파드와, 연결할 Service 객체를 생성한다.  
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-liveness
+spec:
+  selector:
+    app: liveness
+  ports:
+  - port: 8080
+    targetPort: 8080
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-liveness-httpget1
+  labels:
+    app: liveness
+spec:
+  containers:
+  - name: liveness
+    image: kubetm/app
+    ports:
+    - containerPort: 8080
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      failureThreshold: 3
+  terminationGracePeriodSeconds: 0
+```
+
+
 
 출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)
