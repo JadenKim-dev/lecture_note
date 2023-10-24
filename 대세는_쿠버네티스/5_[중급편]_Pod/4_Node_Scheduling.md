@@ -272,7 +272,7 @@ kubectl taint nodes k8s-node1 hw=gpu:NoSchedule
 
 taint를 적용하는 커맨드에는 해당 taint의 key, value를 지정하고, 그 옆에 effect를 지정한다.  
 이제부터는 toleration이 지정되지 않은 상태에서 node1에 파드를 할당하려고 하면 pending이 걸리게 된다.  
-다음과 같이 파드 구성 파일에 매칭되는 toleration 설정이 적용되어야 정상적으로 파드가 생성된다.
+다음과 같이 매칭되는 toleration 설정이 파드 구성 파일에 포함되어야 정상적으로 파드가 생성된다.
 
 ```yaml
 apiVersion: v1
@@ -293,12 +293,13 @@ spec:
   terminationGracePeriodSeconds: 0
 ```
 
-Taint 적용시 지정한 key, value 와 effect가 동일하게 적용되어 있기 때문에, 정상적으로 node1에 파드가 생성된다.
+Taint 적용시 지정한 key, value 와 effect가 동일하게 지정되어 있기 때문에, 정상적으로 node1에 파드가 생성된다.
 
 ### NoExecute
 
 이번엔 NoExecute effect를 적용해 볼 것이다.  
-먼저 다음의 구성 파일로 toleration이 적용되어 있는 파드를 node2에 생성한다.
+먼저 다음의 구성 파일로 NoExecute toleration이 적용되어 있는 파드를 node2에 생성한다.  
+tolerationSeconds는 30으로 적용되어 있다. 
 
 ```yaml
 apiVersion: v1
