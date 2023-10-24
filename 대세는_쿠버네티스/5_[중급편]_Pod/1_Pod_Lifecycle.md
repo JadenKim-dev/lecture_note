@@ -4,7 +4,7 @@
 
 파드의 상세 정보에는 파드의 현재 라이프사이클 상태 정보를 알려주는 값들이 포함되어 있다.
 
-먼저 **phase** 값의 `Pending`, `Running`, `Succeeded`, `Failed`, `Unknown` 으로 해당 파드의 상태 값을 확인할 수 있다.
+먼저 **phase** 값의 `Pending`, `Running`, `Succeeded`, `Failed`, `Unknown` 으로 해당 파드의 라이프사이클 상 단계를 확인할 수 있다.
 
 또한 **conditions**에 포함된 각각의 상태 정보들을 통해 세부 상태를 알 수 있다.  
 conditions에는 `Initialized`, `PodScheduled`, `ContainerReady`, `Ready` 가 존재하며, 각각의 조건의 status가 True / False로 표시된다.
