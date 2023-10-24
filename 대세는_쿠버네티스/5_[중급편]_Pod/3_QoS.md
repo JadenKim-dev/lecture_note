@@ -10,7 +10,7 @@
 ## QoS Class 정책
 
 쿠버네티스에서는 QoS(Quality of Service)를 통해 각 파드에 우선 순위를 부여하여 관리한다.  
-각 파드는 `Guaranted`, `Bustable`, `BestEffort` 로 나뉘는데, Guaranted 파드는 최우선적으로 자원을 할당받는 파드이다.  
+각 파드는 `Guaranted`, `Burstable`, `BestEffort` 로 나뉘는데, Guaranted 파드는 최우선적으로 자원을 할당받는 파드이다.  
 위 상황에서 자원을 추가로 요구한 파드가 Guaranted라면 BestEffort로 할당된 파드를 다운시키고 Guaranted 파드를 유지한다.  
 만약 추가 요구한 파드가 Burstable이라면 자신이 다운된다.
 
