@@ -2,26 +2,26 @@
 
 ## 사용 목적
 
-**ReadinessProbe**와 **LivenessProbe**는 파드 내에 구동되는 앱의 상태를 확인하고, 이를 파드의 상태값에 반영하여 안정적인 서비스 운영이 가능하게 한다.  
-ReadinessProbe는 파드 생성 시점에서 서비스의 정상 구동 전까지 트래픽 전달을 막아주고, LivenessProbe는 파드 실행 중에 서비스 장애 감지 시 트래픽 전달을 막는다.
+**ReadinessProbe**와 **LivenessProbe**는 파드 내에 구동되는 앱의 상태를 확인하고, 이를 파드의 상태값(ContainerReady, Ready)에 반영하여 안정적인 서비스 운영이 가능하게 한다.  
+ReadinessProbe는 파드 생성 시점에서 앱의 정상 구동 전까지 트래픽 전달을 막아주고, LivenessProbe는 파드 실행 중에 서비스 장애 감지 시 트래픽 전달을 막는다.
 
 ## ReadinessProbe 개념
 
 서로 다른 노드에 파드를 띄우고, 이들을 서비스에 연결해서 트래픽을 두 파드에 분산하여 서비스 중이라고 하자.  
-이 때 한 노드가 비정상 종료 되어 그 안의 파드도 함께 종료되면, auto healing 기능에 따라 새로운 노드에 파드가 생성된다.
+이 때 한 노드가 비정상 종료 되어 그 안의 파드가 함께 종료되면, auto healing 기능에 따라 새로운 노드에 파드가 생성된다.
 
-만약 재생성된 파드가 그 즉시 서비스에 연결되면, 해당 파드도 해당 시점부터 바로 트래픽을 받게 된다.  
-하지만 해당 파드 내의 서비스는 아직 완전히 구동되지 않았기 때문에 사용자는 에러 페이지를 보게 된다.
+만약 재생성된 파드가 그 즉시 서비스에 연결되면, 해당 파드도 그 시점부터 바로 트래픽을 받게 된다.  
+하지만 아직 파드 내의 앱이 완전히 구동되지 않았기 때문에 사용자는 에러 페이지를 보게 된다.
 
 ReadinessProbe는 이러한 문제를 예방하는데 쓰인다.  
 ReadinessProbe는 파드 생성 시점에 파드 내의 앱이 정상적으로 실행되었는지 테스트해서, 앱의 정상 구동 전까지는 해당 파드에 트래픽이 전달되지 않도록 파드의 상태값을 설정해준다.
 
 ## LivenessProbe 개념
 
-또한 파드 구동 중에 파드는 계속 Running 이지만 그 안의 서비스가 Error 상태인 경우도 있다.  
-예를 들어 컨테이너의 톰캣 자체는 제대로 돌고 있으나 그 위에 띄워진 프로세스에는 문제가 생겨서, 서비스에 접근하면 에러가 발생하는 경우이다.
+또한 파드의 상태는 Running 이지만 그 안의 서비스가 장애 상황인 경우가 있다.  
+예를 들어 컨테이너의 톰캣 자체는 제대로 돌고 있으나 그 위에 띄워진 프로세스에 문제가 생겨서, 서비스에 접근하면 에러가 발생하는 경우이다.
 
-이러한 문제에 대응하기 위해 LivenessProbe를 사용한다.
+이러한 문제에 대응하기 위해 LivenessProbe를 사용한다.  
 LivenessProbe는 주기적으로 파드 내의 앱이 정상인지를 테스트하여, 오류 상태인 경우 해당 파드에 트래픽이 전달되지 않도록 파드의 상태값을 설정해준다.
 
 ## 설정 가능한 옵션
@@ -42,7 +42,7 @@ ReadinessProbe와 LivenessProbe는 설정 가능한 옵션이 비슷하다.
 
 ### 설정 옵션
 
-/readiness 경로로 hostPath 볼륨을 연결해 두고, 해당 경로에 ready.txt 파일이 존재하는지 확인하는 ReadinessProbe를 파드에 연결한다고 하자.  
+/readiness 경로로 hostPath 볼륨을 연결해 두고, 해당 경로에 ready.txt 파일이 존재하는지 확인하는 ReadinessProbe를 적용하여 파드를 생성한다고 하자.  
 이 때 exec command에는 파일 내용을 확인하는 커맨드인 cat /readiness/ready.txt 를 등록하면 된다.  
 옵션은 initialDelaySeconds: 5, periodSeconds: 10, successThreshold: 3 으로 설정한다.
 
@@ -81,7 +81,21 @@ initialDelaySeconds: 5 이므로 테스트는 최초 지연 5초 후에 시작�
 
 ## ReadinessProbe 실습
 
-다음의 구성 파일로 ReadinessProbe를 연결한 파드를 생성한다.
+다음의 구성 파일로 ReadinessProbe를 적용한 파드를 생성하고, 여기에 연결할 Service를 생성한다.
+
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-readiness
+spec:
+  selector:
+    app: readiness
+  ports:
+  - port: 8080
+    targetPort: 8080
+```
 
 ```yaml
 apiVersion: v1
@@ -127,11 +141,11 @@ $ kubectl get events -w | grep pod-readiness-exec1
 43s Normal Pulled pod/pod-readiness-exec1
 43s Normal Created pod/pod-readiness-exec1
 42s Normal Started pod/pod-readiness-exec1
-4s Warning Unhealthy pod/pod-readiness-exec1 Readiness probe failed: cat: /readiness/redy.txt: No such file or directory
-4s Warning Unhealthy pod/pod-readiness-exec1 Readiness probe failed: cat: /readiness/redy.txt: No such file or directory
+4s Warning Unhealthy pod/pod-readiness-exec1 Readiness probe failed: cat: /readiness/ready.txt: No such file or directory
+4s Warning Unhealthy pod/pod-readiness-exec1 Readiness probe failed: cat: /readiness/ready.txt: No such file or directory
 ```
 
-`cat /readiness/redy.txt` 실행에 실패해서 지속적으로 unhealthy warning이 발생하고 있다.
+`cat /readiness/ready.txt` 실행에 실패해서 지속적으로 unhealthy warning이 발생하고 있다.
 
 ### 파드의 상태 확인
 
@@ -198,5 +212,48 @@ Subsets :
 ```bash
 while true; do date && curl 10.97.190.80:8080/hostname; sleep 1; done
 ```
+
+## LivenessProbe 실습
+
+다음의 구성파일로 LivenessProbe를 적용한 파드와, 연결할 Service 객체를 생성한다.  
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-liveness
+spec:
+  selector:
+    app: liveness
+  ports:
+  - port: 8080
+    targetPort: 8080
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-liveness-httpget1
+  labels:
+    app: liveness
+spec:
+  containers:
+  - name: liveness
+    image: kubetm/app
+    ports:
+    - containerPort: 8080
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      failureThreshold: 3
+  terminationGracePeriodSeconds: 0
+```
+
+컨테이너의 속성으로 livenessProbe 가 추가되어 있고, http 요청으로 파드 상태를 체크하기 위한 설정들이(path, port) 포함되어 있다.  
+
 
 출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)
