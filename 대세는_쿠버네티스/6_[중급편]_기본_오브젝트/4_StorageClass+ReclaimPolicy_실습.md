@@ -224,7 +224,7 @@ spec:
 
 해당 파드는 k8s-node1 노드에 만들어졌기 때문에, Volume도 해당 노드에 만들어진다.
 
-### ReclaimPolicy: Retain, Status: Released
+### ReclaimPolicy: Retain
 
 hostPath로 생성한 PV의 경우, ReclaimPolicy에 아무 값도 지정하지 않았기 때문에 기본 정책인 Retain으로 생성이 되었다.  
 따라서 연결된 PVC를 삭제하면 PV의 상태값이 Released가 된다.
