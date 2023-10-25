@@ -231,7 +231,7 @@ hostPath로 생성한 PV의 경우, ReclaimPolicy에 아무 값도 지정하지 
 
 <img src="./images/volume11.png" width=70% />
 
-따라서 이 경우 데이터를 삭제하기 위해서는 직접 PV를 삭제하고, Volume도 직접 삭제해줘야 한다.  
+이 경우 데이터를 삭제하기 위해서는 직접 PV를 삭제하고, Volume도 직접 삭제해줘야 한다.  
 (hostPath에 지정한 경로의 데이터를 직접 삭제해야 함)
 
 ### ReclaimPolicy: Delete
