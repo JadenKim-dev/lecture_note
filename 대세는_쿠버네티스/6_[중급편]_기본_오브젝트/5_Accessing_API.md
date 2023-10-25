@@ -18,11 +18,13 @@ kubectl CLI를 이용해서 자원을 다루는 것도 모두 내부적으로는
 
 ## Authorization
 
-또한 API를 호출 가능한 권한이더라도 접근할 수 있는 자원에는 제한이 있을 수 있는데, 이를 정의하는 것이 Authorization이다.  
-예를 들어 특정 Namespace에 있는 파드를 통해 Service Account로 접근한 유저가 다른 Namespace에 존재하는 자원에는 접근하지 못 하도록 막아야 할 수 있는데, 이 때 Authorization을 정의한다.
+또한 API를 호출 가능한 권한이더라도 접근할 수 있는 자원에는 제한이 있을 수 있는데, 이를 정의하는 것이 **Authorization**이다.  
+예를 들어 특정 Namespace에 있는 파드를 통해 Service Account로 접근한 유저가 다른 Namespace에 존재하는 자원에는 접근하지 못하도록 막아야 할 수 있는데, 이 때 Authorization을 정의한다.
 
-또한 Admission Control도 존재하는데, 관리자 단에서 1GB가 넘는 용량을 사용하지 못 하도록 막으면 파드 생성 등에 제한이 생기는 식으로 작동한다.  
-이 강의에서는 Admission Control은 다루지 않는다.
+
+## Admission Control
+또한 **Admission Control**도 존재하는데, 1GB가 넘는 용량을 사용하려고 하면 관리자 단에서 파드 생성 등을 막는 식으로 작동한다.  
+(이 강의에서는 Admission Control은 다루지 않는다.)
 
 ## Kubernetes Dashboard
 
