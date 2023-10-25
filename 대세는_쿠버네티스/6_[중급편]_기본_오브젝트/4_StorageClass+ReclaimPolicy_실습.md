@@ -131,7 +131,7 @@ spec:
 
 ### storageClassName: "fast"
 
-이제 동적으로 PV를 생성해볼 차례이다.
+이제 동적으로 PV를 생성해볼 차례이다.  
 다음의 구성파일로 `storageClassName: "fast"` 로 지정한 PVC를 생성한다.
 
 ```yaml
