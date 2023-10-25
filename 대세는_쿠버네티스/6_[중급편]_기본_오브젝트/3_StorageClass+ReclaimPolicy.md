@@ -36,7 +36,7 @@ PVC에 사용할 Storage 크기와 AccessMode를 지정하면, 존재하는 PV �
 Dynamic Provisioning 을 사용하기 위해서는 먼저 이를 지원하는 On-Premise 솔루션을 설치해야 한다.  
 솔루션을 설치하면 Service, Pod 등의 다른 오브젝트들과 함께 StorageClass 객체가 생성되는데, 이 StorageClass 객체를 이용해서 동적으로 PV를 생성할 수 있다.
 
-PVC를 생성할 때 storageClassName을 지정하게 되는데, 기존에는 빈 문자열을 넣어서 기존에 존재하는 PV 중 조건에 맞는 PV가 선택되게 했다.  
+PVC를 생성할 때 storageClassName을 지정하게 되는데, 이전 강의에서는 빈 문자열을 넣어서 기존에 존재하는 PV 중 조건에 맞는 PV가 선택되게 했다.  
 storageClassName에 On-Premise 솔루션 설치시 생성된 StorageClass의 이름을 지정하게 되면, 해당 솔루션이 연결한 Volume을 가진 PV가 생성된다.  
 StorageClass는 추가로 생성하는 것도 가능하고, 만약 해당 객체를 default로 설정해두면 pvc에 storageClassName을 생략한 경우에 모두 해당 StorageClass에 연결된다.
 
