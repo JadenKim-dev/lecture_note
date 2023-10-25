@@ -57,7 +57,7 @@ metadata:
   annotations:
     # Default StorageClass로 선택
     storageclass.kubernetes.io/is-default-class: "true"
-# 동적으로 PV생성시 PersistentVolumeReclaimPolicy 선택 (Default:Delete)
+# 동적으로 PV 생성시 PersistentVolumeReclaimPolicy 선택 (Default: Delete)
 reclaimPolicy: Retain, Delete, Recycle
 provisioner: driver.longhorn.io
 # provisioner 종류에 따라 parameters의 하위 내용 다름
