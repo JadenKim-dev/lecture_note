@@ -51,6 +51,7 @@ StorageClass는 추가로 생성하는 것도 가능하고, 만약 해당 객체
 PV를 새롭게 생성하면 Status 값이 Available이 된다.  
 이 떄 PVC를 연동하면 Bound 상태가 되고, 파드가 PVC를 사용해서 구동되기 시작하면 Volume이 실제로 생성된다.  
 이 상황에서 연결된 파드가 삭제되더라도, PVC와 PV는 그대로 유지되기 때문에 그대로 Bound 상태가 유지된다.  
+
 만약 PVC를 삭제하여 PVC와 PV 간 연결이 끊어지면 PV의 상태가 Released로 변하게 된다.  
 또한 PV와 PVC 간 연결에 예기치 못한 문제가 생기면 Failed 상태로 변한다.
 
@@ -61,10 +62,10 @@ PVC를 삭제하여 PV와의 연결이 끊어진 경우, ReclaimPolicy에 지정
 Retain은 기본으로 지정되는 ReclaimPolicy로, PVC 삭제 시 PV의 상태가 Released가 된다.  
 Released 상태가 되면 그 안의 데이터는 그대로 유지되지만, 해당 PV를 다른 PVC에서 재사용 하는 것은 불가능한 상태가 된다.
 
-Delete는 StorageClass를 이용해서 PV를 생성한 경우에 기본으로 지정되는 ReclaimPolicy로, PVC 삭제 시 연결된 PV가 삭제된다.  
+Delete는 StorageClass를 이용해서 PV를 생성한 경우에 기본으로 지정되는 ReclaimPolicy로, PVC 삭제 시 연결된 PV가 함께 삭제된다.  
 볼륨의 종류에 따라서 실제 데이터가 삭제될 수도 있다.
 
-Recycle이라는 ReclaimPolicy도 있지만 현재는 Deprecated 되었다.
+Recycle이라는 ReclaimPolicy도 있지만 현재는 Deprecated 되었다.  
 Recycle로 지정한 경우 연결된 데이터는 삭제되고, PV를 재활용할 수 있다.
 
 <img src="./images/volume3.png" width=70% />
