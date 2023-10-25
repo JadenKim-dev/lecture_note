@@ -2,7 +2,7 @@
 
 ## Longhorn 설치하기
 
-먼저 Dynamic Provisioning을 실습해보기 위해, On-Premise 솔루션 중 하나인 Longhorn을 설치한다.
+먼저 Dynamic Provisioning을 실습해보기 위해, On-Premise 솔루션 중 하나인 Longhorn을 설치한다.  
 먼저 모든 마스터/워커 노드에 iscsi를 설치하고, Longhorn을 설치한다.
 
 ```bash
