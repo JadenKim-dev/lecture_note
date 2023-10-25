@@ -1,7 +1,7 @@
 # Accessing API - Overview
 
 마스터 노드에는 쿠버네티스의 API Server가 존재하고, 이 API 서버를 통해서만 자원을 만들거나 조회하는 것이 가능하다.  
-마스터 노드 내부에서 kubectl CLI를 이용해서 자원을 다루는 것도 모두 내부적으로는 이 API 서버를 사용한다.
+kubectl CLI를 이용해서 자원을 다루는 것도 모두 내부적으로는 이 API 서버를 사용한다.
 
 ## Authentication
 
