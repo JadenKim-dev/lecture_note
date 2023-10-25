@@ -113,7 +113,7 @@ spec:
     type: DirectoryOrCreate
 ```
 
-이제 다음과 같이 `storageClassName: ""` 으로 지정한 PVC를 생성하면, storage와 accessMode를 기준으로 선택하여 방금 생성한 PV에 연결된다.
+이제 다음과 같이 `storageClassName: ""` 으로 지정한 PVC를 생성하면, resources와 accessMode를 기준으로 선택하여 방금 생성한 PV에 연결된다.
 
 ```yaml
 apiVersion: v1
