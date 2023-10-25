@@ -47,8 +47,6 @@ parameters:
 END
 ```
 
-이 외에도 직접 StorageClass를 생성한다면 다음의 구성 파일을 사용할 수 있다.
-
 만약 직접 StorageClass를 생성한다면 다음의 구성파일을 사용할 수 있다.
 
 ```yaml
