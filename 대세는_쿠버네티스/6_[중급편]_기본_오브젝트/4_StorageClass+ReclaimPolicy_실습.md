@@ -170,12 +170,12 @@ spec:
       storage: 2G
 ```
 
-이번에는 `storageClasName: default`로 자동으로 지정되어 PVC가 생성되고, 이에 맞게 PV가 함께 생성되어 연결된 것을 확인할 수 있다.
+is-default-class: "true" 로 지정한 StorageClass가 자동으로 연결되어 PVC가 생성되고, 이에 맞게 PV가 함께 생성되어 연결된 것을 확인할 수 있다.
 
 <img src="./images/volume6.png" width=70% />
 <img src="./images/volume7.png" width=70% />
 
-Longhorm 대시보드에서 확인해보면 볼륨이 생성된 현황을 확인할 수 있다.
+Longhorn 대시보드에서 확인해보면 볼륨이 생성된 현황을 확인할 수 있다.
 
 <img src="./images/volume8.png" width=70% />
 
