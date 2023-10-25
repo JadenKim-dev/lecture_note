@@ -11,8 +11,9 @@
 
 ### key, csr, crt의 관계
 
-이 파일들 간 관계를 설명하자면, 먼저 발급기관(CA)의 개인키와 클라이언트 개인키를 생성한다.   
-이 각각의 키를 이용해서 CA/Client 인증 요청서(csr)를 만들게 되고, CA의 경우 CA csr을 이용해서 바로 인증서(CA crt)를 만든다.  
+인증에 사용되는 각 파일들의 관계를 살펴보자.  
+먼저 발급기관(CA)의 개인키와 클라이언트 개인키를 생성한게 된다.   
+이렇게 각각의 키를 이용해서 CA/Client 인증 요청서(csr)를 각각 만들게 되고, CA의 경우 CA csr을 이용해서 바로 인증서(CA crt)를 만든다.  
 최종적으로 클라이언트 인증서(Client crt)를 만들게 되는데, 이 떄에는 CA key, CA crt, Client csr을 모두 사용해서 만든다.
 
 이렇게 생성된 CA crt, Client crt, Client key가 kubeconfig 안에 위치하게 되고, API Server 접근을 위한 클라이언트는 이를 복사해와서 사용한다.
