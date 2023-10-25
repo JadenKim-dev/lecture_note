@@ -39,8 +39,8 @@ Dynamic Provisioning 을 사용하기 위해서는 먼저 이를 지원하는 On
 PVC를 생성할 때 storageClassName을 지정하게 되는데, 이전 강의에서는 빈 문자열을 넣어서 StorageClass를 지정하지 않은 PV 중 조건에 맞는 PV가 선택되게 했다.  
 storageClassName에 On-Premise 솔루션 설치시 생성된 StorageClass의 이름을 지정하면, 해당 솔루션의 Volume을 연결한 PV가 생성된다.  
 StorageClass는 추가로 생성하는 것도 가능하고, 만약 해당 객체를 default로 설정해두면 pvc에 storageClassName을 생략한 경우에 모두 해당 StorageClass에 연결된다.  
-storageClassName에 빈 문자열("") -> StorageClass 지정하지 않은 PV에서 찾음  
-storageClassName 생략 -> default로 지정한 StorageClass에 연결
+- storageClassName에 빈 문자열("") -> StorageClass 지정하지 않은 PV에서 찾음  
+- storageClassName 생략 -> default로 지정한 StorageClass에 연결
 
 <img src="./images/volume2.png" width=50% />
 
