@@ -32,13 +32,13 @@ nodeSelector로 선택한 node1에서 `docker ps`를 통해 컨테이너를 조�
 $ docker ps | grep pod-pause
 
 33912ec43b63     kubetm/p8080             "docker-entrypoint.sm"     About a minute ago   Up About a minute    k8s_container2_pod-pause_default_144ef874-4dc2-4c70-8d93-c67f4c6f8865_0
-9a5a6Oec8abb     kubetm/p8000             "docker-entrypoint.s_"     About a minute ago   Up About a minute    k8s_container1_pod-pause_default_144ef874-4dc2-4c70-8d93-c67f4c6f8865_0
+9a5a6Oec8abb     kubetm/p8000             "docker-entrypoint.sm"     About a minute ago   Up About a minute    k8s_container1_pod-pause_default_144ef874-4dc2-4c70-8d93-c67f4c6f8865_0
 c2924165ad25     k8s.gcr.io/pause:3.2     "/pause"                   About a minute ago   Up About a minute    k8s_POD_pod-pause_default_144ef874-4dc2-4c70-8d93-c67f4c6f8865_0
 ```
 
 파드에 생성된 kubetm/p8080, kubetm/p8000 이미지 컨테이너와 함께, Pause Container가 조회되는 것을 확인할 수 있다.
 
-이제 해당 Pause Container에 연결된 Network Namespace를 조회해보자.
+이제 해당 Pause Container에 연결된 Network Namespace를 조회해보자.  
 먼저 다음 커맨드로 컨테이너의 NetworkSetting 정보를 조회하고, 그 중에서 SandboxKey를 확인해보자.
 
 ```bash

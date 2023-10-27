@@ -2,7 +2,7 @@
 
 ## Longhorn 설치하기
 
-먼저 Dynamic Provisioning을 실습해보기 위해, On-Premise 솔루션 중 하나인 Longhorn을 설치한다.
+먼저 Dynamic Provisioning을 실습해보기 위해, On-Premise 솔루션 중 하나인 Longhorn을 설치한다.  
 먼저 모든 마스터/워커 노드에 iscsi를 설치하고, Longhorn을 설치한다.
 
 ```bash
@@ -47,8 +47,6 @@ parameters:
 END
 ```
 
-이 외에도 직접 StorageClass를 생성한다면 다음의 구성 파일을 사용할 수 있다.
-
 만약 직접 StorageClass를 생성한다면 다음의 구성파일을 사용할 수 있다.
 
 ```yaml
@@ -59,7 +57,7 @@ metadata:
   annotations:
     # Default StorageClass로 선택
     storageclass.kubernetes.io/is-default-class: "true"
-# 동적으로 PV생성시 PersistentVolumeReclaimPolicy 선택 (Default:Delete)
+# 동적으로 PV 생성시 PersistentVolumeReclaimPolicy 선택 (Default: Delete)
 reclaimPolicy: Retain, Delete, Recycle
 provisioner: driver.longhorn.io
 # provisioner 종류에 따라 parameters의 하위 내용 다름
@@ -115,7 +113,7 @@ spec:
     type: DirectoryOrCreate
 ```
 
-이제 다음과 같이 `storageClassName: ""` 으로 지정한 PVC를 생성하면, storage와 accessMode를 기준으로 선택하여 방금 생성한 PV에 연결된다.
+이제 다음과 같이 `storageClassName: ""` 으로 지정한 PVC를 생성하면, resources와 accessMode를 기준으로 선택하여 방금 생성한 PV에 연결된다.
 
 ```yaml
 apiVersion: v1
@@ -133,7 +131,7 @@ spec:
 
 ### storageClassName: "fast"
 
-이제 동적으로 PV를 생성해볼 차례이다.
+이제 동적으로 PV를 생성해볼 차례이다.  
 다음의 구성파일로 `storageClassName: "fast"` 로 지정한 PVC를 생성한다.
 
 ```yaml
@@ -172,12 +170,12 @@ spec:
       storage: 2G
 ```
 
-이번에는 `storageClasName: default`로 자동으로 지정되어 PVC가 생성되고, 이에 맞게 PV가 함께 생성되어 연결된 것을 확인할 수 있다.
+is-default-class: "true" 로 지정한 StorageClass가 자동으로 연결되어 PVC가 생성되고, 이에 맞게 PV가 함께 생성되어 연결된 것을 확인할 수 있다.
 
 <img src="./images/volume6.png" width=70% />
 <img src="./images/volume7.png" width=70% />
 
-Longhorm 대시보드에서 확인해보면 볼륨이 생성된 현황을 확인할 수 있다.
+Longhorn 대시보드에서 확인해보면 볼륨이 생성된 현황을 확인할 수 있다.
 
 <img src="./images/volume8.png" width=70% />
 
@@ -226,14 +224,14 @@ spec:
 
 해당 파드는 k8s-node1 노드에 만들어졌기 때문에, Volume도 해당 노드에 만들어진다.
 
-### ReclaimPolicy: Retain, Status: Released
+### ReclaimPolicy: Retain
 
 hostPath로 생성한 PV의 경우, ReclaimPolicy에 아무 값도 지정하지 않았기 때문에 기본 정책인 Retain으로 생성이 되었다.  
 따라서 연결된 PVC를 삭제하면 PV의 상태값이 Released가 된다.
 
 <img src="./images/volume11.png" width=70% />
 
-따라서 이 경우 데이터를 삭제하기 위해서는 직접 PV를 삭제하고, Volume도 직접 삭제해줘야 한다.  
+이 경우 데이터를 삭제하기 위해서는 직접 PV를 삭제하고, Volume도 직접 삭제해줘야 한다.  
 (hostPath에 지정한 경로의 데이터를 직접 삭제해야 함)
 
 ### ReclaimPolicy: Delete
