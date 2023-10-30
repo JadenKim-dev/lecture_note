@@ -43,6 +43,6 @@ Pod가 실행 종료되면 ContainerReady와 Ready가 False가 된다.
 만약 파드 내에 실행한 컨테이너 중 하나라도 Error로 종료되면 파드의 phase가 `Failed`가 된다.  
 모든 컨테이너가 Completed로 종료되어야 파드의 phase가 `Succeeded`가 된다.
 
-![lifecycle1](./images/lifecycle1.png)
+<img src="./images/1_Lifecycle1.png" />
 
 출처: [인프런 대세는 쿠버네티스 [초급 ~ 중급]](https://inf.run/yW34)
