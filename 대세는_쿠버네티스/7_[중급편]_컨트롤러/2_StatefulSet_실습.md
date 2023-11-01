@@ -38,6 +38,7 @@ spec:
   selector:
     matchLabels:
       type: db
+  serviceName: "stateful-headless"
   template:
     metadata:
       labels:
@@ -52,31 +53,109 @@ spec:
 ReplicaSet과 StatefulSet 모두 replicas가 1로 설정되어 있으므로 파드는 각각 하나씩 생성된다.  
 이 때, ReplicaSet에 의해 생성된 파드의 이름은 `replica-web-<hash>` 형태로 생성되고, StatefulSet에 의해 생성된 파드의 이름은 `stateful-db-<index>` 형태로 생성된다.
 
-<img src="./images/2_StatefulSet1.png" width=80%>
+```bash
+kubectl get po
+
+NAME                READY   STATUS    RESTARTS   AGE
+replica-web-qsh5t   1/1     Running   0          68s
+stateful-db-0       1/1     Running   0          2m29s
+```
 
 ### ReplicaSet, StatefulSet의 replicas 증가
 
 이번에는 replicas의 개수를 각각 3으로 증가시켜보자.  
 이 때 ReplicaSet의 경우 동시에 2개의 파드가 추가 생성되고, StatefulSet의 경우 순차적으로 2개의 파드가 생성된다.
 
-<img src="./images/2_StatefulSet2.png" width=80%>
-<img src="./images/2_StatefulSet3.png" width=80%>
+```bash
+$ kubectl apply -f replicaset.yaml
+$ kubectl get po
+NAME                READY   STATUS              RESTARTS   AGE
+replica-web-h7hzb   0/1     ContainerCreating   0          1s
+replica-web-qsh5t   1/1     Running             0          2m13s
+replica-web-zrn2w   0/1     ContainerCreating   0          1s
+```
+
+```bash
+$ kubectl apply -f statefulset.yaml
+$ kubectl get po
+NAME                READY   STATUS              RESTARTS   AGE
+stateful-db-0       1/1     Running             0          5m7s
+stateful-db-1       0/1     ContainerCreating   0          1s
+
+$ kubectl get po
+NAME                READY   STATUS              RESTARTS   AGE
+stateful-db-0       1/1     Running             0          5m12s
+stateful-db-1       1/1     Running             0          6s
+stateful-db-2       0/1     ContainerCreating   0          3s
+```
 
 ### 파드 삭제
 
 이번에는 파드를 하나 삭제해보자.
 ReplicaSet의 경우 파드 삭제를 시도하면, ReplicaSet의 replicas 개수를 유지하기 위해 파드를 즉시 하나 더 생성한다.  
-이 때 새롭게 생성되는 파드는 새로운 hash 값으로 구성된 이름을 가지게 된다.  
-예시에서는 `replica-web-6pc8k` 파드를 삭제했고, 즉시 `replica-web-v4r4t` 파드가 생성되었다.  
-(terminationGracePeriodSeconds를 10으로 지정했기 때문에 10초의 지연 시간 후에 파드가 삭제된다.)
+이 때 새롭게 생성되는 파드는 새로운 hash 값으로 구성된 이름을 가지게 된다.
 
-이와 달리 StatefulSet의 경우 파드 삭제를 시도하면, 파드 삭제가 완료된 후에 동일한 이름으로 파드를 재생성한다.  
-예시에서는 `stateful-db-1` 파드를 삭제했고, 파드가 완전히 삭제된 후에 `stateful-db-1` 파드가 재생성되었다.
+```bash
+$ kubectl delete po replica-web-zrn2w
+$ kubectl get po
+NAME                READY   STATUS              RESTARTS   AGE
+replica-web-h7hzb   1/1     Running             0          6m5s
+replica-web-qsh5t   1/1     Running             0          6m5s
+replica-web-q2ldv   0/1     ContainerCreating   0          3s
+replica-web-zrn2w   1/1     Terminating         0          6m19s
+```
+
+이와 달리 StatefulSet의 경우 파드 삭제를 시도하면, 파드 삭제가 완료된 후에 동일한 이름으로 파드를 재생성한다.
+
+```bash
+$ kubectl delete po stateful-db-0
+$ kubectl get po
+NAME                READY   STATUS              RESTARTS   AGE
+stateful-db-0       1/1     Terminating         0          4m12s
+stateful-db-1       1/1     Running             0          5m15s
+stateful-db-2       1/1     Running             0          5m17s
+
+$ kubectl get po
+NAME                READY   STATUS              RESTARTS   AGE
+stateful-db-0       0/1     ContainerCreating   0          0s
+stateful-db-1       1/1     Running             0          5m15s
+stateful-db-2       1/1     Running             0          5m17s
+```
 
 ### replicas를 0으로 수정
 
-replicas를 0으로 수정하면, ReplicaSet의 경우 즉시 모든 파드를 동시에 삭제한다.  
+replicas를 0으로 수정하면, ReplicaSet의 경우 즉시 모든 파드를 동시에 삭제한다.
+
+```bash
+kubectl apply -f replicaset.yaml
+kubectl get po
+
+NAME                READY   STATUS        RESTARTS   AGE
+replica-web-4prd5   1/1     Terminating   0          59s
+replica-web-h8qjb   1/1     Terminating   0          59s
+replica-web-q2ldv   1/1     Terminating   0          10m
+```
+
 이와 달리 StatefulSet의 경우 파드를 `stateful-db-2` 부터 `stateful-db-0` 까지 순차적으로 파드를 삭제한다.
+
+```bash
+kubectl apply -f statefulset.yaml
+
+kubectl get po
+NAME            READY   STATUS        RESTARTS   AGE
+stateful-db-0   1/1     Running       0          9m30s
+stateful-db-1   1/1     Running       0          88s
+stateful-db-2   1/1     Terminating   0          84s
+
+kubectl get po
+NAME            READY   STATUS        RESTARTS   AGE
+stateful-db-0   1/1     Running       0          9m54s
+stateful-db-1   1/1     Terminating   0          112s
+
+kubectl get po
+NAME            READY   STATUS        RESTARTS   AGE
+stateful-db-0   1/1     Terminating   0          10m14s
+```
 
 ## PVC를 이용한 실습
 
@@ -143,7 +222,7 @@ storageos에 의해 생성되는 PV가 기본적으로 RWO(RWOnce) AccessMode를
 
 결국 nodeSelector를 지정해야 정상적으로 Pod가 생성된다.  
 이 때 ReplicaSet에 의해 생성되는 파드들은 동일한 볼륨을 공유하기 때문에, 하나의 파드에서 파일을 생성하면 다른 파드에서도 동일한 파일을 확인할 수 있다.  
-ReplicaSet으 scaling해서 파드 개수를 늘려도, 새롭게 생성한 파드에서도 동일한 파일이 확인된다.
+replicas를 증가해서 파드 개수를 늘리면, 새롭게 생성한 파드에서도 동일한 파일이 확인된다.
 
 ### StatefulSet의 PVC 관리
 
@@ -236,7 +315,12 @@ Address: 20.109.131.33
 headless-service의 이름과 pod 이름을 조합한 형태의 도메인으로 파드에 손쉽게 접근할 수 있다.
 
 ```bash
-$ curl stateful-pvc-0.stateful-headless:8080/ping
-$ curl stateful-pvc-1.stateful-headless:8080/ping
-$ curl stateful-pvc-2.stateful-headless:8080/ping
+$ curl stateful-db-0.stateful-headless:8080/health
+stateful-db-0 is Running
+
+$ curl stateful-db-1.stateful-headless:8080/health
+stateful-db-1 is Running
+
+$ curl stateful-db-2.stateful-headless:8080/health
+stateful-db-2 is Running
 ```
