@@ -9,10 +9,17 @@ $ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/co
 ```
 
 위 명령어를 통해 ingress-nginx 네임스페이스가 생성되고, Deployment, ReplicaSet이 생성되어 Nginx Pod가 생성된다.  
-v1.22에서는 Nginx Pod에 접근할 수 있도록 Service도 함께 생성된다.  
-예제에 맞춰서 Service의 http nodePort를 30431로 변경하고, https의 nodePort도 30798로 변경한다.
+v1.22에서는 Nginx Pod에 접근할 수 있도록 연결해주는 ingress-nginx-controller Service도 함께 생성된다.  
+해당 서비스의 http, https 연결에 등록된 nodePort를 확인한다.
 
-<img src="./images/4_Ingress1.png" width=50%>
+```bash
+k get svc -n ingress-nginx ingress-nginx-controller
+
+NAME                       TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
+ingress-nginx-controller   NodePort   10.105.73.190   <none>        80:32671/TCP,443:30847/TCP   6m8s
+```
+
+위 예제에서는 http는 32671 포트, https는 30847 포트로 설정되어 있다.
 
 ## Service Loadbalancing 실습
 
@@ -89,7 +96,7 @@ spec:
     - port: 8080
 ```
 
-이제 각 서비스에 트래픽 분산을 하기 위해 Ingress 객체를 생성하고, rules에 각 path에 대해 service를 매칭시킨다.
+이제 각 서비스에 트래픽 분산을 하기 위해 Ingress 객체를 생성하고, rules에서 각 path에 대해 service를 매칭시킨다.
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -124,22 +131,21 @@ spec:
                   number: 8080
 ```
 
-이제 master node의 IP의 연결된 Port로 각각의 path에 접근해보면, 각각의 서비스로 연결되는 것을 확인할 수 있다.
+이제 node IP의 연결된 Port로 각각의 path에 접근해보면, 각각의 서비스로 연결되는 것을 확인할 수 있다.
 
 ```bash
-$ curl 192.168.0.30:30431/
+$ curl 192.168.65.4:30431/
 Shopping Page.
-$ curl 192.168.0.30:30431/order
+$ curl 192.168.65.4:30431/order
 Order Service.
-$ curl 192.168.0.30:30431/customer
+$ curl 192.168.65.4:30431/customer
 Customer Center.
 ```
 
 ## Canary Upgrade 실습
 
-이번에는 Canary Upgrade를 실습해보자.
-먼저 v1 Pod, Service를 생성하고, 이를 Ingress에 연결한다.  
-이번에는 Host로 www.app.com을 지정하고, Path는 지정하지 않은 채로 service만 연결한다.
+이번에는 Canary Upgrade를 실습해보자.  
+먼저 ingress에 연결할 v1 Pod, Service를 생성한다.
 
 ```yaml
 apiVersion: v1
@@ -163,6 +169,9 @@ spec:
   ports:
     - port: 8080
 ```
+
+이제 Canary Upgrade에 사용할 Ingress 객체를 생성한다.  
+Host로 www.app.com을 지정하고, Path는 지정하지 않은 채로 service만 연결한다.
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -189,14 +198,14 @@ spec:
 
 ```bash
 cat << EOF >> /etc/hosts
-192.168.56.30 www.app.com
+192.168.65.4 www.app.com
 EOF
 ```
 
 이제 www.app.com 경로를 통해 해당하는 Nginx Pod로 접속이 가능하다.
 
 ```bash
-$ curl www.app.com:30431/version
+$ curl www.app.com:32671/version
 Version: v1
 ```
 
@@ -253,7 +262,7 @@ spec:
 설정한 weight에 따라서 10%의 요청만 새로운 버전의 파드에 전달되는 것을 확인할 수 있다.
 
 ```bash
-$ while true; do curl www.app.com:30431/version; sleep 1; done
+$ while true; do curl www.app.com:32671/version; sleep 1; done
 
 Version: v1
 Version: v2
@@ -267,27 +276,7 @@ Version: v1
 `canary-by-header`에는 헤더 key를, `canary-by-header-value`에는 헤더 value를 지정한다.
 
 ```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: canary-kr
-  annotations:
-    nginx.ingress.kubernetes.io/canary: "true"
-    nginx.ingress.kubernetes.io/canary-by-header: "Accept-Language"
-    nginx.ingress.kubernetes.io/canary-by-header-value: "kr"
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: www.app.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: svc-v2
-                port:
-                  number: 8080
+A
 ```
 
 이제 다음의 커맨드로 적절한 Header를 삽입하여 요청을 보내면 해당하는 파드에 요청이 닿는 것을 확인할 수 있다.
@@ -368,8 +357,8 @@ $ kubectl create secret tls secret-https --key tls.key --cert tls.crt
 ```
 
 이제 해당 도메인으로 https 접근을 해보자.  
-먼저 /etc/hosts에 다음의 내용을 추가해서 www.https.com 도메인을 등록한다. `192.168.56.30 www.https.com`
+먼저 /etc/hosts에 다음의 내용을 추가해서 www.https.com 도메인을 등록한다. `192.168.65.4 www.https.com`
 
 이제 브라우저를 통해 다음의 도메인으로 접근하면, https 연결이 정상적으로 이루어지는 것을 확인할 수 있다.  
 (사설 인증서이기 때문에 warning message가 표시될 수 있다.)
-`https://www.https.com:30798/hostname`
+`https://www.https.com:30847/hostname`
