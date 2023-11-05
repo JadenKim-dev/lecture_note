@@ -94,11 +94,10 @@ spec:
   type: NodePort
 ```
 
-이제 해당 Deployment를 스케일링할 HPA를 생성해보자.  
+이제 해당 Deployment를 스케일링할 HPA 객체를 생성해보자.  
 `maxReplicas: 10`, `minReplicas: 2`로 최대/최수 파드 개수를 정의했다.  
-그리고 metrics에 `type: Resource`로 정의하고, resource에 `name: cpu`로 지정해서 cpu를 기반으로 스케일링을 수행하는 HPA를 생성한다.  
-target에는 `type: Utilization`, `averageUtilization: 50` 으로 지정했다.  
-`averageUtilization: 50` 이기 때문에 CPU의 평균 사용량이 `10m * 0.5 = 5m`이 되면 스케일링이 시작된다.
+그리고 metrics에 `type: Resource`로 정의하고, `resource: name: cpu`로 지정해서 cpu를 기반으로 스케일링을 수행하는 HPA를 생성한다.  
+target에는 `type: Utilization`, `averageUtilization: 50` 으로 지정하여, CPU의 평균 사용량이 `10m * 0.5 = 5m`이 되면 스케일링이 시작된다.
 
 ```yaml
 apiVersion: autoscaling/v2beta2
@@ -129,13 +128,13 @@ spec:
 $ kubectl get hpa -w
 
 NAME              REFERENCE                   TARGETS    MINPODS  MAXPODS  REPLICAS  AGE
-hpa-resource-cpu  Deployment/deployment-cpu1  0%/50%     2        10       2         15s
+hpa-resource-cpu  Deployment/deployment-cpu1  30%/50%     2        10       2         15s
 ```
 
 이제 다음의 명령어로 0.03초마다 계속 요청을 보내서 파드에 부하를 준다.
 
 ```bash
-while true;do curl 192.168.56.30:30001/hostname; sleep 0.01; done
+while true;do curl 192.168.56.30:30001/hostname; sleep 0.03; done
 ```
 
 이 때 `kubectl get hpa -w`로 확인되는 HPA의 상태값에서 리소스 사용량이 150% 수준으로 증가하고, 이에 따라서 replicas가 10개까지 증가하는 것을 확인할 수 있다.
