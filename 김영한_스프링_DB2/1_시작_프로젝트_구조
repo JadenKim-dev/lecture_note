@@ -3,4 +3,20 @@
 기본적으로 사용할 레포지토리가 인터페이스로 정의되어 있다.  
 
 ```java
+public interface ItemRepository {
+
+    Item save(Item item);
+
+    void update(Long itemId, ItemUpdateDto updateParam);
+
+    Optional<Item> findById(Long id);
+
+    List<Item> findAll(ItemSearchCond cond);
+}
+```
+
+이제 각각의 데이터 접근 기술을 학습하면서 해당 기술로 구현한 레포지토리를 사용할 것이다.  
+전체 조회 시이는 findAll 메서드를 사용하는데, 매개변수로 검색 조건인 ItemSearchCond를 받고 있다.
+
+```java
 ```
