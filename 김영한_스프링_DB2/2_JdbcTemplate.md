@@ -441,4 +441,4 @@ public class JdbcTemplateItemRepositoryV3 implements ItemRepository {
 ```
 SimpleJdbcInsert 객체를 생성하면서 삽입할 테이블과 자동 생성되는 컬럼을 지정한다.  
 삽입할 칼럼명의 경우 생략할 수 있다.
-SqlParameterSource로 생성한 각 파라미터의 바인딩을 제공하면 데이터 삽입이 완료된다.
+SqlParameterSource를 통해 각 파라미터의 바인딩을 제공하여 데이터를 삽입한다.
