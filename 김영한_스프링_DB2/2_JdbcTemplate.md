@@ -408,4 +408,13 @@ select item_name as itemName
 
 다만 db의 snake_case를 자바 객체의 camelCase로 바꾸는 정도의 작업은 자동으로 해준다.
 
+### SimpleJdbcInsert
+
+SimpleJdbcInsert을 사용할 경우 db insert문을 직접 작성하지 않아도 된다.  
+이를 통해 자동 증가된 키를 받아오기 위해 keyHolder를 사용하던 부분도 생략할 수 있다.
+
+```java
+
+```
+
 
