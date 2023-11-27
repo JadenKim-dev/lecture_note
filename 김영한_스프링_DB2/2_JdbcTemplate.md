@@ -414,7 +414,31 @@ SimpleJdbcInsert을 사용할 경우 db insert문을 직접 작성하지 않아�
 이를 통해 자동 증가된 키를 받아오기 위해 keyHolder를 사용하던 부분도 생략할 수 있다.
 
 ```java
+package hello.itemservice.repository.jdbctemplate;
 
+@Slf4j
+public class JdbcTemplateItemRepositoryV3 implements ItemRepository {
+
+    private final NamedParameterJdbcTemplate template;
+    private final SimpleJdbcInsert jdbcInsert;
+
+    public JdbcTemplateItemRepositoryV3(DataSource dataSource) {
+        this.template = new NamedParameterJdbcTemplate(dataSource);
+        this.jdbcInsert = new SimpleJdbcInsert(dataSource)
+                .withTableName("item")
+                .usingGeneratedKeyColumns("id");
+//                .usingColumns("item_name", "price", "quantity"); //생략 가능
+    }
+
+    @Override
+    public Item save(Item item) {
+        SqlParameterSource param = new BeanPropertySqlParameterSource(item);
+        Number key = jdbcInsert.executeAndReturnKey(param);
+        item.setId(key.longValue());
+        return item;
+    }
+}
 ```
-
-
+SimpleJdbcInsert 객체를 생성하면서 삽입할 테이블과 자동 생성되는 컬럼을 지정한다.  
+삽입할 칼럼명의 경우 생략할 수 있다.
+SqlParameterSource로 생성한 각 파라미터의 바인딩을 제공하면 데이터 삽입이 완료된다.
