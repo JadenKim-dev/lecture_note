@@ -257,7 +257,13 @@ insert into item (item_name, price, quantity) " +
     "values (:itemName, :price, :quantity)"
 ```
 
-전체 코드는 아래와 같다.
+### 이름 지정 파라미터2
+
+이름 기반으로 파라미터를 바인딩 하기 위해서는 key:value 형태의 Map으로 파라미터를 넘겨줘야 한다.  
+이 때 Map을 직접 사용할 수도 있고, SqlParameterSource의 구현체를 사용하는 것도 가능하다.
+
+전체 코드는 아래와 같다.  
+다양한 방법을 사용해서 파라미터를 바인딩했다
 
 ```java
 package hello.itemservice.repository.jdbctemplate;
@@ -348,3 +354,33 @@ public class JdbcTemplateItemRepositoryV2 implements ItemRepository {
     }
 }
 ```
+
+Map을 사용하는 경우에는 자바의 기본 문법을 사용해서 파라미터를 지정하면 된다.
+
+```java
+Map<String, Object> param = Map.of("id", id);
+Item item = template.queryForObject(sql, param, itemRowMapper());
+```
+
+MapSqlParameterSource 구현체를 사용할 경우에는 메서드 체이닝을 이용해서 각 파라미터 값을 지정한다.
+
+```java
+SqlParameterSource param = new MapSqlParameterSource()
+    .addValue("itemName", updateParam.getItemName())
+    .addValue("price", updateParam.getPrice())
+    .addValue("quantity", updateParam.getQuantity())
+    .addValue("id",itemId);
+template.update(sql, param);
+```
+
+BeanPropertySqlParameterSource 구현체의 경우 생성자에 객체를 넘기면 자바빈 프로파티 규약을 통해 매핑 객체를 생성한다.  
+내부에서는 각각의 getter를 순회하면서 Map 형태의 객체를 생성한다.
+
+```java
+SqlParameterSource param = new BeanPropertySqlParameterSource(item);
+KeyHolder keyHolder = new GeneratedKeyHolder();
+template.update(sql, param, keyHolder);
+```
+
+
+
