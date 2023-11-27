@@ -382,5 +382,30 @@ KeyHolder keyHolder = new GeneratedKeyHolder();
 template.update(sql, param, keyHolder);
 ```
 
+또한 V2 레포지토리에서는 Mapper 함수 또한 BeanPropertyRowMapper를 이용해서 더욱 간단하게 작성했다. 
+
+```java
+private RowMapper<Item> itemRowMapper() {
+    return BeanPropertyRowMapper.newInstance(Item.class);
+}
+```
+
+생성자에 넘긴 클래스를 바탕으로 자바빈 규약에 맞추어 데이터를 변환한다.  
+내부적으로는 Item 객체를 생성한 후, setter를 이용해 각 변수에 값을 할당한다.
+
+```java
+Item item = new Item();
+item.setId(rs.getLong("id"));
+item.setPrice(rs.getInt("price"));
+```
+
+단 이 때 객체의 멤버변수 이름과 db에 저장된 칼럼명이 불일치 할 수 있다.  
+이 경우에는 sql 작성시 해당 칼럼을 별칭을 이용해서 조회하면 된다.
+
+```sql
+select item_name as itemName
+```
+
+다만 db의 snake_case를 자바 객체의 camelCase로 바꾸는 정도의 작업은 자동으로 해준다.
 
 
