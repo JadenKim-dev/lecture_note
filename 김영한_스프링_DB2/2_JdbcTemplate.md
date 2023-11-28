@@ -439,6 +439,26 @@ public class JdbcTemplateItemRepositoryV3 implements ItemRepository {
     }
 }
 ```
-SimpleJdbcInsert 객체를 생성하면서 삽입할 테이블과 자동 생성되는 컬럼을 지정한다.  
-삽입할 칼럼명의 경우 생략할 수 있다.
-SqlParameterSource를 통해 각 파라미터의 바인딩을 제공하여 데이터를 삽입한다.
+SimpleJdbcInsert 객체를 생성하면서 삽입할 테이블과 자동 생성되는 컬럼을 지정한다. (삽입할 칼럼명의 경우 생략할 수 있다.)  
+jdbcInsert.executeAndReturnKey(param)를 통해 SqlParameterSource에 각 파라미터의 바인딩을 담아서 데이터를 삽입한다.
+
+### JdbcTemplate 정리
+
+지금까지 확인한 내용 외에도 JdbcTemplate은 다양한 기능을 제공한다.  
+
+단건 조회 시 특정 칼럼이나 count 등의 특정 값을 받아오는 경우 다음과 같이 작성할 수 있다.
+
+```java
+int countOfActorsNamedJoe = jdbcTemplate.queryForObject(
+        "select count(*) from t_actor where first_name = ?", Integer.class, "Joe");
+```
+
+다음과 같이 스토어드 프로시저를 호출하는 것도 가능하다.  
+(SimpleJdbcCall을 사용하면 더 편리하게 이용 가능하다.)
+
+```java
+jdbcTemplate.update(
+            "call SUPPORT.REFRESH_ACTORS_SUMMARY(?)",
+            Long.valueOf(unionId));
+```
+
