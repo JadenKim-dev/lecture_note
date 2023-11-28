@@ -462,3 +462,6 @@ jdbcTemplate.update(
             Long.valueOf(unionId));
 ```
 
+지금까지 살펴본 것처럼 jdbcTemplate은 sql을 직접 사용해야 하는 상황에서 채택할 수 있는 기술이다.  
+ORM을 사용하는 경우에도 일부 로직에서는 직접 sql을 사용해야 하는 경우가 있을 수 있기 때문에, 함께 사용될 수 있다.  
+다만 동적 쿼리 작성이 어렵기 때문에, 이 점을 보완한 MyBatis를 사용하는 것도 좋은 선택이다.
