@@ -55,9 +55,54 @@ sql의 delete문을 이용해서 데이터를 삭제하는 것도 가능하다.
 
 ### 데이터 롤백
 
+테스트 케이스 실행 후 데이터를 롤백하기 위해 트랜잭션을 활용할 수 있다.  
+PlatformTransactionManager를 자동으로 주입받고, BeforeEach를 통해 각 테스트 케이스 전에 트랜잭션을 시작한다.  
+또한 각 테스트케이스 실행 후에는 AfterEach를 통해 트랜잭션을 롤백하도록 하면 된다.  
+설사 실행 과정에서 문제가 생겨 AfterEach 문이 실행되지 않더라도, 트랜잭션은 커밋되지 않았기 때문에 db에 남지 않는다.
 
+```java
+package hello.itemservice.domain;
 
+@Slf4j
+@SpringBootTest
+class ItemRepositoryTest {
 
+    @Autowired
+    ItemRepository itemRepository;
 
+    @Autowired
+    PlatformTransactionManager transactionManager;
+    TransactionStatus status;
+
+    @BeforeEach
+    void beforeEach() {
+        //트랜잭션 시작
+        status = transactionManager.getTransaction(new DefaultTransactionDefinition());
+    }
+
+    @AfterEach
+    void afterEach() {
+        //트랜잭션 롤백
+        transactionManager.rollback(status);
+    }
+
+    @Test
+    void save() {
+        //given
+        Item item = new Item("itemA", 10000, 10);
+
+        //when
+        Item savedItem = itemRepository.save(item);
+
+        //then
+        Item findItem = itemRepository.findById(item.getId()).get();
+        assertThat(findItem).isEqualTo(savedItem);
+    }
+}
+```
+
+각 테스트 케이스의 코드는 손 볼 필요가 없다.  
+JdbcTemplate을 비롯한 데이터 접근 기술들은 내부에서 트랜잭션 동기화 매니저로부터 커넥션을 얻어온다.  
+따라서 레포지토리에 의해 수행되는 db 작업들은 자동으로 트랜잭션의 영향을 받게 된다.
 
 
