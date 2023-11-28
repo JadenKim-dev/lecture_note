@@ -10,8 +10,8 @@ spring.datasource.username=sa
 logging.level.org.springframework.jdbc=debug
 ```
 
-테스트 코드의 경우 db1에서 작성한 코드를 재활용했다.  
-이 때 단건 생성, 수정의 경우 테스트에 성공하지만, 여러 건에 대한 조회의 경우 테스트에 실패한다.
+테스트 코드의 경우 db1 강의에서 작성한 코드를 재활용했다.  
+이 때 단건 생성/수정의 경우 테스트에 성공하지만, 여러 건에 대한 조회의 경우 테스트에 실패한다.
 
 ```java
 @Test
@@ -27,6 +27,23 @@ void findItems() {
 
     //여기서 3개 이상이 조회되는 문제가 발생
     test(null, null, item1, item2, item3);
-  }
-
+}
 ```
+
+이는 서비스 환경과 테스트 환경의 db가 구분되지 않아서 발생하는 문제이다.  
+서비스 환경에서 기존에 삽입했던 데이터가 테스트 과정에 영향을 미치고 있다.
+
+### 데이터베이스 분리
+
+위에서 발생한 문제를 해결하는 간단한 방법은 테스트용 database를 별도로 만드는 것이다.  
+사용하는 db에서 새롭게 데이터베이스를 생성하고, 테스트 환경에 설정한다.  
+아래 예시에서는 서비스 환경과 구분된 testcase 데이터베이스를 생성해서 연결했다.
+
+```properties
+spring.profiles.active=test
+spring.datasource.url=jdbc:h2:tcp://localhost/~/testcase
+spring.datasource.username=sa
+```
+
+이렇게 하면 위에서 실패했던 목록 조회에 대한 테스트가 정상적으로 완료된다.  
+다만 테스트를 두 번 돌리거나, 데이터를 수정하는 다른 테스트케이스와 함께 실행하면 테스트에 실패한다.
