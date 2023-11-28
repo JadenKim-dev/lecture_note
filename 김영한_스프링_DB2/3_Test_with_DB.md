@@ -106,3 +106,39 @@ JdbcTemplate을 비롯한 데이터 접근 기술들은 내부에서 트랜잭�
 따라서 레포지토리에 의해 수행되는 db 작업들은 자동으로 트랜잭션의 영향을 받게 된다.
 
 이제 모든 테스트 케이스를 함께 실행하거나 반복해서 실행해도 정상적으로 통과한다.
+
+### @Transactional 적용
+
+스프링에서는 위에서 한 것처럼 직접 트랜잭션을 시작/롤백 하지 않아도 되도록 어노테이션을 지원한다.  
+@Transactional을 테스트 클레스에 적용하면 된다.
+
+```java
+@Transactional
+@SpringBootTest
+class ItemRepositoryTest {
+
+    @Autowired
+    ItemRepository itemRepository;
+
+    /*
+      모두 제거 가능
+    @Autowired
+    PlatformTransactionManager transactionManager;
+    TransactionStatus status;
+
+
+    @BeforeEach
+    void beforeEach() {
+        //트랜잭션 시작
+        status = transactionManager.getTransaction(new DefaultTransactionDefinition());
+    }
+
+    @AfterEach
+    void afterEach() {
+        //트랜잭션 롤백
+        transactionManager.rollback(status);
+    }
+    */
+}
+```
+
