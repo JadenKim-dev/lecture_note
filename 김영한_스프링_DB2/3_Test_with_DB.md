@@ -157,19 +157,6 @@ H2 데이터베이스는 테스트용 데이터베이스를 별도로 관리하�
 ```java
 package hello.itemservice;
 
-import hello.itemservice.config.*;
-import hello.itemservice.repository.ItemRepository;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-
-import javax.sql.DataSource;
-
-
 @Slf4j
 @Import(JdbcTemplateV3Config.class)
 @SpringBootApplication(scanBasePackages = "hello.itemservice.web")
@@ -177,12 +164,6 @@ public class ItemServiceApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ItemServiceApplication.class, args);
-	}
-
-	@Bean
-	@Profile("local")
-	public TestDataInit testDataInit(ItemRepository itemRepository) {
-		return new TestDataInit(itemRepository);
 	}
 
 	@Bean
@@ -234,3 +215,43 @@ create table item
   quantity integer, primary key (id) )
 ```
 
+### 스프링 부트와 임베디드 모드
+
+스프링 부트에서는 더 간단하게 임베디드 모드의 db를 사용할 수 있다.  
+application.properties에서 db 관련 정보를 제공하지 않고, Config에서 Datasource를 별도로 빈 등록하지 않으면 된다.  
+이 경우 스프링 부트에서는 자동으로 임베디드 모드의 db를 실행하고, 커넥션을 얻어와서 Datasource를 등록한다.  
+
+```java
+package hello.itemservice;
+
+@Slf4j
+@Import(JdbcTemplateV3Config.class)
+@SpringBootApplication(scanBasePackages = "hello.itemservice.web")
+public class ItemServiceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ItemServiceApplication.class, args);
+	}
+
+    /*
+	@Bean
+	@Profile("test")
+	public DataSource dataSource() {
+		log.info("메모리 데이터베이스 초기화");
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setDriverClassName("org.h2.Driver");
+		dataSource.setUrl("jdbc:h2:mem:db;DB_CLOSE_DELAY=-1");
+		dataSource.setUsername("sa");
+		dataSource.setPassword("");
+		return dataSource;
+	}
+    */
+}
+```
+```properties
+spring.profiles.active=test
+# spring.datasource.url=jdbc:h2:tcp://localhost/~/testcase
+# spring.datasource.username=sa
+```
+
+결국 테스트 클래스에 @Transactional을 붙이는 것 만으로 테스트를 위한 설정이 끝나게 된다.
