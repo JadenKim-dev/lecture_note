@@ -56,6 +56,11 @@ logging.level.hello.itemservice.repository.mybatis=trace
 type-aliases-package의 경우 xml에서 참조할 타입의 라이브러리를 지정한다.  
 원래는 각 쿼리의 xml 마다 타입에 라이브러리를 함께 명시해야 하지만, 위와 같이 작성하면 라이브러리를 생략할 수 있다.
 
+map-underscore-to-camel-case의 경우 db의 snake_case 칼럼들을 camelCase로 변환할지를 설정한다.  
+이를 통해 별도로 alias를 설정하지 않아도 자동으로 칼럼명을 변환하여 사용할 수 있다.
+
+logging은 특정 라이브러리에서 실행되는 mybatis 쿼리에 대한 로그를 보기 위한 설정이다.
+
 
 
 
