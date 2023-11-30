@@ -142,8 +142,21 @@ db의 자동 생성된 키를 사용할 때에는 useGeneratedKeys에 true를 �
 
 update, select 문도 마찬가지로 각각 update, select 태그를 사용하면 된다.  
 select문의 경우 쿼리의 결과를 resultType에 지정한 객체로 자동으로 변환해준다.  
-mybatis.type-aliases-package=hello.itemservice.domain 으로 설정했기 때문에 전체 라이브러리 명을 적지 않아도 된다.
-하나의 객체를 반환 받을 때는 단일 객체 또는 Optional로 받고, 여러 개를 받을 때는 List로 받는다.
+mybatis.type-aliases-package=hello.itemservice.domain 으로 설정했기 때문에 전체 라이브러리 명을 적지 않아도 된다.  
+또한 map-underscore-to-camel-case=true 로 지정되어 있기 때문에 자동으로 camelCase로 변환된다.  
+메서드의 반환 타입의 경우 하나의 객체를 반환 받을 때는 단일 객체 또는 Optional로 받고, 여러 개를 받을 때는 List로 받는다.
+
+또한 동적 쿼리를 만들 때에는 where 테그와 if 태그를 통해 편리하게 구성할 수 있다.  
+where 태그 내에 if 태그를 작성하게 되는데, test에 작성한 조건이 충족 되면 if 태그 내의 구문이 쿼리에 추가된다.  
+이 때 if가 하나도 충족하지 않으면 where 키워드 자체가 제외되고, 하나만 충족하면 and를 where로 바꿔주는 등 편의 기능이 제공된다.
+
+> xml에서 사용하는 '<', '>' 등의 특수 문자는 구문 내에서 사용이 불가능하다.  
+> &lt; &gt; 등으로 변환해서 사용하거나, CDATA 내에 작성해야 한다.
+
+###
+
+
+
 
 
 
