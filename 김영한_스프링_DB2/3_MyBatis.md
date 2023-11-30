@@ -86,6 +86,9 @@ public interface ItemMapper {
 자바 코드가 아니므로 src/main/resources 하위에 작성하되, 동일한 라이브러리 위치에 작성해야 한다.
 위 인터페이스의 위치와 맞게 src/main/resources/hello/itemservice/repository/mybatis/ItemMapper.xml 로 작성한다.
 
+> xml 파일의 위치를 임의로 설정하고 싶다면 application.properties에 설정을 추가하면 된다.
+> ex) `mybatis.mapper-locations=classpath:mapper/**/*.xml`
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
@@ -126,5 +129,21 @@ public interface ItemMapper {
 
 </mapper>
 ```
+
+xml의 mapper 태그의 namespace에는 매칭되는 매퍼 인터페이스를 지정하면 된다.  
+
+각 xml 태그의 id는 인터페이스의 매칭되는 메서드의 이름을 적으면 된다.  
+파라미터들은 #{}로 명시하면 된다.  
+인터페이스가 하나의 파라미터만 받을 경우에는, 매퍼에서 넘긴 객체의 프로퍼티들이 각각 바인딩 된다.(insert)  
+메서드에서 여러 개의 파라미터를 받을 경우에는, 메서드의 각 파라미터들에 @Param을 붙여서 매핑해주어야 한다.(update)
+
+insert 문의 경우 insert 태그를 사용한다.  
+db의 자동 생성된 키를 사용할 때에는 useGeneratedKeys에 true를 넣고, keyProperty에 해당하는 프로퍼티 이름을 적으면 된다.  
+
+update, select 문도 마찬가지로 각각 update, select 태그를 사용하면 된다.  
+select문의 경우 쿼리의 결과를 resultType에 지정한 객체로 자동으로 변환해준다.  
+mybatis.type-aliases-package=hello.itemservice.domain 으로 설정했기 때문에 전체 라이브러리 명을 적지 않아도 됐다.
+
+
 
 
