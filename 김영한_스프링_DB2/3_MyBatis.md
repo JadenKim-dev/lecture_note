@@ -13,3 +13,14 @@ MyBatis의 장점은 쿼리를 xml 안에 작성하기 때문에 여러 줄의 �
 </update>
 ```
 
+### MyBatis 설정
+
+먼저 build.gradle에 MyBatis 관련 의존성을 명시한다.
+
+```groovy
+//MyBatis 스프링 부트 3.0 추가
+implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.1'
+```
+
+
+
