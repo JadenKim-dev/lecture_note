@@ -61,8 +61,70 @@ map-underscore-to-camel-case의 경우 db의 snake_case 칼럼들을 camelCase�
 
 logging은 특정 라이브러리에서 실행되는 mybatis 쿼리에 대한 로그를 보기 위한 설정이다.
 
+### 적용1 - 기본
 
+이제 MyBatis를 이용해서 데이터에 접근해보자.  
+MyBatis를 사용하기 위해서는 먼저 각각의 매핑 xml 호출에 사용할 매퍼 인터페이스를 정의해야 한다.
 
+```java
+package hello.itemservice.repository.mybatis;
 
+@Mapper
+public interface ItemMapper {
+
+    void save(Item item);
+
+    void update(@Param("id") Long id, @Param("updateParam") ItemUpdateDto updateParam);
+
+    Optional<Item> findById(Long id);
+
+    List<Item> findAll(ItemSearchCond itemSearch);
+}
+```
+
+이제 각 메서드에 매핑되는 xml 파일을 작성하면 된다.  
+자바 코드가 아니므로 src/main/resources 하위에 작성하되, 동일한 라이브러리 위치에 작성해야 한다.
+위 인터페이스의 위치와 맞게 src/main/resources/hello/itemservice/repository/mybatis/ItemMapper.xml 로 작성한다.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hello.itemservice.repository.mybatis.ItemMapper">
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        insert into item (item_name, price, quantity)
+        values (#{itemName}, #{price}, #{quantity})
+    </insert>
+
+    <update id="update">
+        update item
+        set item_name=#{updateParam.itemName},
+            price=#{updateParam.price},
+            quantity=#{updateParam.quantity}
+        where id = #{id}
+    </update>
+
+    <select id="findById" resultType="Item">
+        select id, item_name, price, quantity
+        from item
+        where id = #{id}
+    </select>
+
+    <select id="findAll" resultType="Item">
+        select id, item_name, price, quantity
+        from item
+        <where>
+            <if test="itemName != null and itemName != ''">
+                and item_name like concat('%', #{itemName}, '%')
+            </if>
+            <if test="maxPrice != null">
+                and price &lt;= #{maxPrice}
+            </if>
+        </where>
+    </select>
+
+</mapper>
+```
 
 
