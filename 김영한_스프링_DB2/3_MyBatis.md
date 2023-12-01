@@ -153,7 +153,94 @@ where 태그 내에 if 태그를 작성하게 되는데, test에 작성한 조�
 > xml에서 사용하는 '<', '>' 등의 특수 문자는 구문 내에서 사용이 불가능하다.  
 > &lt; &gt; 등으로 변환해서 사용하거나, CDATA 내에 작성해야 한다.
 
-###
+### 적용2 - 설정과 실행
+
+이제 MyBatis ItemMapper를 사용하는 레포지토리를 구현하자.  
+인터페이스로 정의한 Mapper의 경우 자동으로 구현체를 생성하여 의존성이 주입된다.  
+
+```java
+package hello.itemservice.repository.mybatis;
+
+@Slf4j
+@Repository
+@RequiredArgsConstructor
+public class MyBatisItemRepository implements ItemRepository {
+
+    private final ItemMapper itemMapper;
+
+    @Override
+    public Item save(Item item) {
+        log.info("itemMapper class={}", itemMapper.getClass());
+        itemMapper.save(item);
+        return item;
+    }
+
+    @Override
+    public void update(Long itemId, ItemUpdateDto updateParam) {
+        itemMapper.update(itemId, updateParam);
+    }
+
+    @Override
+    public Optional<Item> findById(Long id) {
+        return itemMapper.findById(id);
+    }
+
+    @Override
+    public List<Item> findAll(ItemSearchCond cond) {
+        return itemMapper.findAll(cond);
+    }
+}
+```
+
+주입받은 itemMapper에 위임하는 식으로 간단하게 작성할 수 있다.  
+이제 해당 레포지토리를 사용하도록 Config를 작성하고 적용시키면 된다.  
+정상적으로 실행되고, 테스트도 통과하는 것을 확인할 수 있다.
+
+```java
+package hello.itemservice.config;
+
+@Configuration
+@RequiredArgsConstructor
+public class MyBatisConfig {
+
+    private final ItemMapper itemMapper;
+
+    @Bean
+    public ItemService itemService() {
+        return new ItemServiceV1(itemRepository());
+    }
+
+    @Bean
+    public ItemRepository itemRepository() {
+        return new MyBatisItemRepository(itemMapper);
+    }
+
+}
+```
+
+> Datasource, TransactionManager 등의 객체들은 MyBatis 내부에서 자동으로 주입받아서 사용한다.
+
+```java
+package hello.itemservice;
+
+@Slf4j
+@Import(MyBatisConfig.class)
+@Import(V2Config.class)
+@SpringBootApplication(scanBasePackages = "hello.itemservice.web")
+public class ItemServiceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ItemServiceApplication.class, args);
+	}
+
+	@Bean
+	@Profile("local")
+	public TestDataInit testDataInit(ItemRepository itemRepository) {
+		return new TestDataInit(itemRepository);
+	}
+}
+```
+
 
 
 
