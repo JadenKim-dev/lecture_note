@@ -300,7 +300,8 @@ MyBatis에서는 어노테이션을 통한 쿼리 작성을 지원한다.
 Optional<Item> findById(Long id);
 ```
 
-
+또한 파라미터를 체워 넣는 PreparedStatement 방식으로 동작하는 #{} 외에도, 문자열 자체를 변수로 대체하는 ${}도 사용할 수 있다.  
+다만 문자열 대체의 경우 SQL Injection에 취약하기 때문에 가급적 사용해선 안 된다.
 
 ```java
 @Select("select * from user where ${column} = #{value}")
@@ -309,3 +310,44 @@ User findByColumn(
     @Param("value") String value
 );
 ```
+
+또한 sql - include 태그를 사용하면 중복되는 코드 조각을 편리하기 재활용할 수 있다.  
+대표적으로 select 문의 조회 칼럼을 나열하는 부분을 재활용할 수 있다.  
+또한 property 태그를 사용하면 매칭되는 프로퍼티의 값을 전달하는 것도 가능하다.
+
+```xml
+<sql id="userColumns"> ${alias}.id,${alias}.username,${alias}.password </sql>
+
+<select id="selectUsers" resultType="map">
+    select
+        <include refid="userColumns"><property name="alias" value="t1"/></include>,
+        <include refid="userColumns"><property name="alias" value="t2"/></include>
+    from some_table t1
+        cross join some_table t2
+</select>
+``` 
+
+```xml
+<sql id="sometable">
+    ${prefix}Table
+</sql>
+
+<sql id="someinclude">
+    from
+    <include refid="${include_target}"/>
+</sql>
+
+<select id="select" resultType="map">
+    select
+    field1, field2, field3
+    <include refid="someinclude">
+        <property name="prefix" value="Some"/>
+        <property name="include_target" value="sometable"/>
+    </include>
+</select>
+```
+
+위 예시의 결과는 select field1, field2, field3 from SomeTable 이다.
+
+
+
