@@ -255,3 +255,39 @@ itemMapper class=class com.sun.proxy.$Proxy66
 이를 통해 XML에서 적절한 데이터를 찾아서 쿼리로 호출하는 부분이 자동화된다.  
 커넥션, 트랜잭션을 사용하는 부분이나 DataAccessException로의 스프링 예외 변환도 모듈 내부에서 자동으로 수행해준다.
 
+### MyBatis 동적 쿼리
+
+MyBatis는 동적 쿼리를 편리하게 사용하기 위한 다양한 태그들을 제공한다.  
+if, choose (when, otherwise), trim (where, set), foreach 등의 태그가 존재한다.  
+
+```xml
+<select id="findActiveBlogLike" resultType="Blog">
+    SELECT * FROM BLOG WHERE state = ‘ACTIVE’
+    <choose>
+        <when test="title != null">
+            AND title like #{title}
+        </when>
+        <when test="author != null and author.name != null">
+            AND author_name like #{author.name}
+        </when>
+        <otherwise>
+            AND featured = 1
+        </otherwise>
+    </choose>
+</select>
+```
+
+```xml
+<select id="selectPostIn" resultType="domain.blog.Post">
+    SELECT *
+    FROM POST P
+    <where>
+        <foreach item="item" index="index" collection="list"
+            open="ID in (" separator="," close=")" nullable="true">
+                #{item}
+        </foreach>
+    </where>
+</select>
+```
+
+
