@@ -293,7 +293,14 @@ if, choose (when, otherwise), trim (where, set), foreach 등의 태그가 존재
 ### MyBatis 기타 기능
 
 MyBatis에서는 어노테이션을 통한 쿼리 작성을 지원한다.  
-다만 동적 쿼리는 만들 수 없기 때문에 쿼리가 간단한 경우에만 사용해야 한다.  
+다만 동적 쿼리는 만들 수 없기 때문에 쿼리가 간단한 경우에만 사용해야 한다. 
+
+```java
+@Select("select id, item_name, price, quantity from item where id=#{id}")
+Optional<Item> findById(Long id);
+```
+
+
 
 ```java
 @Select("select * from user where ${column} = #{value}")
