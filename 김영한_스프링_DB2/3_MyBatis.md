@@ -253,5 +253,5 @@ itemMapper class=class com.sun.proxy.$Proxy66
 ```
 
 이를 통해 XML에서 적절한 데이터를 찾아서 쿼리로 호출하는 부분이 자동화된다.  
-또한 모듈 내부에서 DataAccessException로의 스프링 예외 변환도 자동으로 수행해주기 때문에 추가 작업이 필요 없다.
+커넥션, 트랜잭션을 사용하는 부분이나 DataAccessException로의 스프링 예외 변환도 모듈 내부에서 자동으로 수행해준다.
 
