@@ -349,5 +349,22 @@ User findByColumn(
 
 위 예시의 결과는 select field1, field2, field3 from SomeTable 이다.
 
+또한 select 시 각 컬럼에 대해서 alias를 사용하는 대신, resultMap 태그에 매핑 정보를 따로 정리할 수 있다.  
+이 때에는 select문의 resuptSet 속성으로 해당 태그를 연결하면 된다.
 
+```xml
+<resultMap id="userResultMap" type="User">
+    <id property="id" column="user_id" />
+    <result property="username" column="user_name"/>
+    <result property="password" column="hashed_password"/>
+</resultMap>
 
+<select id="selectUsers" resultMap="userResultMap">
+    select user_id, user_name, hashed_password
+    from some_table
+    where id = #{id}
+</select>
+```
+
+또한 association, collection 태그를 사용하면 db join을 통한 연관관계 매핑도 가능하다.  
+다만 성능과 복잡성 때문에 실효성이 없는 편이다.
