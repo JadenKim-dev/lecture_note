@@ -51,3 +51,51 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
 또한 Spring Data JPA는 인터페이스에 메서드명만 적어두면, 이를 바탕으로 쿼리를 자동 생성해주는 기능을 제공한다.
 
+예를 들어 특정 유저네임을 가지고, 나이가 특정 값 이상인 멤버를 조회하고 싶다고 하자.  
+순수 JPA로 작성한다면 다음과 같이 JPQL을 직접 작성하고, 파라미터를 바인딩 해야 한다.  
+
+```java
+public List<Member> findByUsernameAndAgeGreaterThan(String username, int age) {
+      return em.createQuery("select m from Member m where m.username = :username and m.age > :age")
+              .setParameter("username", username)
+              .setParameter("age", age)
+              .getResultList();
+```
+
+하지만 스프링 데이터 JPA를 사용하면 다음과 같이 인터페이스에 적절한 메서드명으로 정의만 하면 된다. 
+스프링 데이터 JPA 내부에서는 해당 메서드명을 분석해서 적절한 JPQL을 만들어서 실행해준다.
+```java
+public interface MemberRepository extends JpaRepository<Member, Long> {
+    List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
+}
+```
+
+다음과 같은 다양한 쿼리 메서드 기능을 사용할 수 있다.
+
+- 조회: find...By , read...By , query...By , get...By
+       findHelloBy 처럼 식별하기 위한 내용(설명)이 들어가도 된다. 
+- COUNT: count...By -> 반환타입 long
+- EXISTS: exists...By -> 반환타입 boolean
+- 삭제: delete...By , remove...By -> 반환타입 long
+- DISTINCT: findDistinct , findMemberDistinctBy 
+- LIMIT: findFirst3 , findFirst , findTop , findTop3
+
+하지만 조건이 많이 붙는 복잡한 쿼리를 작성해야 할 때에는 메서드 명이 너무 길어질 수 있다.  
+이 때에는 @Query에 실행할 JPQL을 직접 작성할 수도 있다.
+
+```java
+public interface SpringDataJpaItemRepository extends JpaRepository<Item, Long> {
+    //쿼리 메서드 기능
+    List<Item> findByItemNameLike(String itemName);
+
+    //쿼리 직접 실행
+    @Query("select i from Item i where i.itemName like :itemName and i.price <= :price")
+        List<Item> findItems(@Param("itemName") String itemName, @Param("price") Integer price);
+    }
+}
+```
+
+
+
+
+
