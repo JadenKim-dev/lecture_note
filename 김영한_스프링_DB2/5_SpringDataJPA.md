@@ -95,7 +95,27 @@ public interface SpringDataJpaItemRepository extends JpaRepository<Item, Long> {
 }
 ```
 
+### 적용1
 
+이제 본격적으로 프로젝트에 스프링 데이터 JPA를 적용해보자.  
+spring-boot-starter-data-jpa 의존성을 추가하면 jdbc, jpa, data jpa 등 필요한 라이브러리기 모두 설치된다.
 
+이제 JpaRepository를 상속한 인터페이스를 다음과 같이 정의하자.
 
+```java
+package hello.itemservice.repository.jpa;
 
+public interface SpringDataJpaItemRepository extends JpaRepository<Item, Long> {
+
+    List<Item> findByItemNameLike(String itemName);
+
+    List<Item> findByPriceLessThanEqual(Integer price);
+
+    //쿼리 메서드 (아래 메서드와 같은 기능 수행)
+    List<Item> findByItemNameLikeAndPriceLessThanEqual(String itemName, Integer price);
+
+    //쿼리 직접 실행
+    @Query("select i from Item i where i.itemName like :itemName and i.price <= :price")
+    List<Item> findItems(@Param("itemName") String itemName, @Param("price") Integer price);
+}
+```
