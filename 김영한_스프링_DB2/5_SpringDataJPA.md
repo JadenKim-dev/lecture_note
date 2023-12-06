@@ -100,22 +100,34 @@ public interface SpringDataJpaItemRepository extends JpaRepository<Item, Long> {
 이제 본격적으로 프로젝트에 스프링 데이터 JPA를 적용해보자.  
 spring-boot-starter-data-jpa 의존성을 추가하면 jdbc, jpa, data jpa 등 필요한 라이브러리기 모두 설치된다.
 
-이제 JpaRepository를 상속한 인터페이스를 다음과 같이 정의하자.
+이제 JpaRepository를 상속한 인터페이스를 다음과 같이 정의하자.  
+findAll의 경우 JpaRepository에서 기본 제공하지만, 파일명이나 가격 조건을 걸어서 조회하는 기능은 직접 정의해야 한다.  
+Itemname 검색, 가격 검색은 쿼리 메서드로 간단하게 해결할 수 있다.  
+다만 둘을 모두 적용한 검색은 메서드명이 지나치게 길어지는 문제가 있기 때문에, @Query를 통해 직접 쿼리를 작성한다.
+
+> 스프링 데이터 JPA에서도 Example 기능을 이용하면 동적 쿼리 구현이 가능하지만, 기능이 빈약한 편이다.  
+> 동적 쿼리는 추후에 Querydsl을 통해 보다 적절히 해결한다.
 
 ```java
 package hello.itemservice.repository.jpa;
 
 public interface SpringDataJpaItemRepository extends JpaRepository<Item, Long> {
 
+    // select i from Item i where i.name like ?
     List<Item> findByItemNameLike(String itemName);
 
+    // select i from Item i where i.price <= ?
     List<Item> findByPriceLessThanEqual(Integer price);
 
-    //쿼리 메서드 (아래 메서드와 같은 기능 수행)
+    // select i from Item i where i.itemName like ? and i.price <= ?
+    // 쿼리 메서드 (아래 메서드와 같은 기능 수행)
     List<Item> findByItemNameLikeAndPriceLessThanEqual(String itemName, Integer price);
 
-    //쿼리 직접 실행
+    // 쿼리 직접 실행
     @Query("select i from Item i where i.itemName like :itemName and i.price <= :price")
     List<Item> findItems(@Param("itemName") String itemName, @Param("price") Integer price);
 }
 ```
+
+쿼리 메서드를 이용할 때에는 순서대로 파라미터를 적어주기만 하면 된다.  
+하지만 직접 쿼리를 작성할 때에는 @Param 어노테이션을 통해 명시적으로 바인딩해야 한다.
