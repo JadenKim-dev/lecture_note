@@ -185,7 +185,68 @@ public class JpaItemRepositoryV2 implements ItemRepository {
 }
 ```
 
+목록 조회에서는 조건으로 입력받은 값을 바탕으로 직접 적절한 메서드를 호출하는 식으로 구현했다.  
+추후에는 Querydsl의 동적 쿼리를 통해 해당 기능을 개선해야 한다.
+
+> JpaRepository 구현체는 그 내부에서 이미 예외 변환을 수행하기 때문에 @Repository가 붙지 않아도 괜찮다.
+
+이제 해당 레포지토리를 컨테이너에 등록하는 Config를 작성하자.  
+SpringDataJpaItemRepository를 자동 주입받고, 이를 이용하여 JpaItemRepositoryV2를 생성하여 등록한다.
+
+```java
+package hello.itemservice.config;
+
+@Configuration
+@RequiredArgsConstructor
+public class SpringDataJpaConfig {
+
+    private final SpringDataJpaItemRepository springDataJpaItemRepository;
+
+    @Bean
+    public ItemService itemService() {
+        return new ItemServiceV1(itemRepository());
+    }
+
+    @Bean
+    public ItemRepository itemRepository() {
+        return new JpaItemRepositoryV2(springDataJpaItemRepository);
+    }
+}
+```
+
+이제 SpringApplication에서 해당 Config를 사용하도록 등록하면 된다.
+
+```java
+package hello.itemservice;
+
+import hello.itemservice.config.*;
+import hello.itemservice.repository.ItemRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import javax.sql.DataSource;
 
 
+@Slf4j
+@Import(SpringDataJpaConfig.class)
+@SpringBootApplication(scanBasePackages = "hello.itemservice.web")
+public class ItemServiceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ItemServiceApplication.class, args);
+	}
+
+	@Bean
+	@Profile("local")
+	public TestDataInit testDataInit(ItemRepository itemRepository) {
+		return new TestDataInit(itemRepository);
+	}
+}
+```
 
 
