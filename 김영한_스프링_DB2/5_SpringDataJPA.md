@@ -131,3 +131,61 @@ public interface SpringDataJpaItemRepository extends JpaRepository<Item, Long> {
 
 쿼리 메서드를 이용할 때에는 순서대로 파라미터를 적어주기만 하면 된다.  
 하지만 직접 쿼리를 작성할 때에는 @Param 어노테이션을 통해 명시적으로 바인딩해야 한다.
+
+### 적용2
+
+이제 방금 개발한 JpaRepository에 대해서 주입되는 프록시 리포지토리를 ItemService에서 사용하도록 구성해야 한다.  
+다만 ItemService는 현재 직접 정의한 ItemRepository 인터페이스에 의존하고 있기 때문에, 중간에 어댑터 역할을 하는 구현체를 정의해야 한다.  
+JpaItemRepositoryV2는 동적으로 생성된 JpaRepository 구현체를 주입받아서 각 기능에 필요한 메서드를 호출한다.
+
+```java
+package hello.itemservice.repository.jpa;
+
+@Repository
+@Transactional
+@RequiredArgsConstructor
+public class JpaItemRepositoryV2 implements ItemRepository {
+
+    private final SpringDataJpaItemRepository repository;
+
+    @Override
+    public Item save(Item item) {
+        return repository.save(item);
+    }
+
+    @Override
+    public void update(Long itemId, ItemUpdateDto updateParam) {
+        Item findItem = repository.findById(itemId).orElseThrow();
+        findItem.setItemName(updateParam.getItemName());
+        findItem.setPrice(updateParam.getPrice());
+        findItem.setQuantity(updateParam.getQuantity());
+    }
+
+    @Override
+    public Optional<Item> findById(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    public List<Item> findAll(ItemSearchCond cond) {
+        String itemName = cond.getItemName();
+        Integer maxPrice = cond.getMaxPrice();
+
+        if (StringUtils.hasText(itemName) && maxPrice != null) {
+//            return repository.findByItemNameLikeAndPriceLessThanEqual("%" + itemName + "%", maxPrice);
+            return repository.findItems("%" + itemName + "%", maxPrice);
+        } else if (StringUtils.hasText(itemName)) {
+            return repository.findByItemNameLike("%" + itemName + "%");
+        } else if (maxPrice != null) {
+            return repository.findByPriceLessThanEqual(maxPrice);
+        } else {
+            return repository.findAll();
+        }
+    }
+}
+```
+
+
+
+
+
