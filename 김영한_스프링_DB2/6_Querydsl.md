@@ -65,4 +65,40 @@ QueryDSL은 자바 문법을 통해 type-safe하게 다양한 저장소(MongoDB,
 QueryDSL을 사용하면 엔티티 및 테이블 정보를 읽어서, 코드 생성기가 쿼리용 객체를 생성해준다.
 어노테이션 기반으로 동작하기 때문에 Annotation Processing Tool이라고 하는데, JPA에서는 @Entity에 대해서 작동한다.
 
+QueryDSL은 사실상 JPQL을 type-safe하게 작성하는 용도로 많이 사용된다.
+위에서와 동일한 조건으로 쿼리를 작성해야 한다고 해보자.
+먼저 다음과 같이 테이블을 만들고, 엔티티를 정의한다.
+
+```sql
+create table Member (
+    id bigint auto primary key,
+    age integer not null,
+    name varchar(255)
+)
+```
+
+```java
+@Entity public class Member { 
+    @Id @GeneratedValue
+    private Long id;
+    private String name;
+    private int age;
+    ...
+}
+```
+
+이러면 APT에 의해서 다음과 같은 쿼리용 객체가 생성된다.
+
+```java
+@Generated
+public class QMember extends EntityPathBase<Member> {
+    public final NumberPath<Long> id = createNumber("id", Long.class); 
+    public final NumberPath<Integer> age = createNumber("age", Integer.class); 
+    public final StringPath name = createString("name");
+
+    public static final QMember member = new QMember("member"); 
+    ... 
+}
+```
+
 
