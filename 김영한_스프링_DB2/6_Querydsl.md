@@ -101,4 +101,24 @@ public class QMember extends EntityPathBase<Member> {
 }
 ```
 
+이를 바탕으로 다음과 같이 쿼리를 생성하는 코드를 작성할 수 있다.
+
+```java
+JPAQueryFactory query = new JPAQueryFactory(entityManager);
+QMember m = QMember. member;
+List<Member> list = query
+    .select(m)
+    .from(m)
+    .where(
+        m.age.between(20, 40).and(m.name.like("Kim%")) 
+    )
+    .orderBy(m.age.desc())
+    .limit(3)
+    .fetch(m);
+```
+
+
+
+
+
 
