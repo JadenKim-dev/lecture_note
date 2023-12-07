@@ -101,7 +101,7 @@ public class QMember extends EntityPathBase<Member> {
 }
 ```
 
-이를 바탕으로 다음과 같이 쿼리를 생성하는 코드를 작성할 수 있다.
+이를 바탕으로 쿼리를 생성하는 코드를 다음과 같이 작성할 수 있다.
 
 ```java
 JPAQueryFactory query = new JPAQueryFactory(entityManager);
@@ -117,8 +117,31 @@ List<Member> list = query
     .fetch(m);
 ```
 
+쿼리 기반의 단순하고 직관적인 인터페이스를 사용하고 있다.  
+이를 이용하여 JPQL을 빌드하게 되고, 최종적으로 쿼리로 변환되어 db에 전달된다.  
+APT를 사용하기 위한 설정만 초기에 하고 나면 손쉽게 라이브러리를 사용할 수 있다.
 
+QueryDSL은 기본적인 JPQL의 기능을 모두 지원하고, 추가로 동적 쿼리를 편리하게 작성하는 기능을 제공한다.
 
+```java
+String firstName = "Kim";
+int min=20,max=40;
 
+BooleanBuilder builder = new BooleanBuilder();
+if (StringUtils. hasText(str)) 
+    builder.and(m.name.startsWith(firstName)); 
+
+if (min != 0 && max != 0) 
+    builder.and(m.age.between(min, max)); 
+
+List<Member> results = query 
+    .select(m) 
+    .from(m) 
+    .where(builder) 
+    .fetch(m);
+```
+
+스프링 데이터 JPA는 조회에서 지원되는 기능이 부족한 편이다.  
+QueryDSL은 복잡한 쿼리와 동적 쿼리를 편리하게 구성할 수 있게 지원하여 스프링 데이터 JPA를 보완해준다. 
 
 
