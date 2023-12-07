@@ -144,4 +144,27 @@ List<Member> results = query
 스프링 데이터 JPA는 조회에서 지원되는 기능이 부족한 편이다.  
 QueryDSL은 복잡한 쿼리와 동적 쿼리를 편리하게 구성할 수 있게 지원하여 스프링 데이터 JPA를 보완해준다. 
 
+### QueryDSL 설정
 
+QueryDSL을 사용하기 위해서는 다음의 의존성들과 설정을 추가해야 한다.
+스프링 설정이나 관련된 라이브러리들의 설정에 따라 추가하는 의존성이 달라질 수 있다.
+
+```groovy
+dependencies {
+    //Querydsl 추가
+    implementation 'com.querydsl:querydsl-jpa' annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jpa"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+    ...
+
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+//Querydsl 추가, 자동 생성된 Q클래스 gradle clean으로 제거 clean {
+    delete file('src/main/generated')
+}
+```
+
+이제 Q타입 파일을 생성해야 하는데, 프로젝트 빌드 옵션에 따라 생성 방법이 달라진다.  
+먼저 IntelliJ에서 프로젝트 빌드 방식은 다음의 설정에서 확인할 수 있다.  
+Preferences - Build, Execution, Deployment - Build - Tools - Gradle
