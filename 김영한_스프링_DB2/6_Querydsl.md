@@ -58,5 +58,11 @@ JPA에서 공식으로 지원하는 Criteria API도 있다.
 
 ### 소개2 - 해결
 
+DSL은 도메인 특화 언어로, 특정 도메인으로 표현력이 제한된 프로그래밍 언어의 종류이다.  
+QueryDSL은 쿼리에 특화된 언어로, 단순하고 간결하다는 것이 특징이다.
+
+QueryDSL은 자바 문법을 통해 type-safe하게 다양한 저장소(MongoDB, MySQL, Redis)의 쿼리를 생성해주는 것을 목표로 했다.
+QueryDSL을 사용하면 엔티티 및 테이블 정보를 읽어서, 코드 생성기가 쿼리용 객체를 생성해준다.
+어노테이션 기반으로 동작하기 때문에 Annotation Processing Tool이라고 하는데, JPA에서는 @Entity에 대해서 작동한다.
 
 
