@@ -272,5 +272,66 @@ public class JpaItemRepositoryV3 implements ItemRepository {
 }
 ```
 Querydsl울 사용하기 위해서는 EntityManager를 주입받고, 이를 이용해서 JPAQueryFactory 객체를 생성해야 한다.
+동적 쿼리 작성에서 BooleanBuilder를 이용해서 조건에 따라 where 문을 다르게 구성할 수 있다.  
+다만 이 경우 직접 조건에 따라 판단을 하고, builder.and를 호출해서 where 조건을 추가해나가야 한다.  
+
+이를 좀 더 최적화하면 itemName, price에 대한 BooleanExpression을 반환하는 메서드를 각각 정의할 수 있다.  
+조건을 추가할 때는 해당하는 함수형 값을, 추가하지 않을 때에는 null을 반환하도록 구현하고, 해당 메서드의 반환값을 where에 그대로 사용하면 된다.
+
+이제 해당 레포지토리를 사용하도록 Config를 작성하고, 어플리케이션에 설정한다.
+
+```java
+package hello.itemservice.config;
+
+@Configuration
+@RequiredArgsConstructor
+public class QuerydslConfig {
+
+    private final EntityManager em;
+
+    @Bean
+    public ItemService itemService() {
+        return new ItemServiceV1(itemRepository());
+    }
+
+    @Bean
+    public ItemRepository itemRepository() {
+        return new JpaItemRepositoryV3(em);
+    }
+
+}
+```
+
+```java
+package hello.itemservice;
+
+import hello.itemservice.config.*;
+import hello.itemservice.repository.ItemRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import javax.sql.DataSource;
 
 
+@Slf4j
+@Import(QuerydslConfig.class)
+@SpringBootApplication(scanBasePackages = "hello.itemservice.web")
+public class ItemServiceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ItemServiceApplication.class, args);
+	}
+
+	@Bean
+	@Profile("local")
+	public TestDataInit testDataInit(ItemRepository itemRepository) {
+		return new TestDataInit(itemRepository);
+	}
+
+}
+```
