@@ -168,3 +168,109 @@ dependencies {
 이제 Q타입 파일을 생성해야 하는데, 프로젝트 빌드 옵션에 따라 생성 방법이 달라진다.  
 먼저 IntelliJ에서 프로젝트 빌드 방식은 다음의 설정에서 확인할 수 있다.  
 Preferences - Build, Execution, Deployment - Build - Tools - Gradle
+
+먼저 Gradle을 통해서 빌드하는 경우, Gradle -> Tasks -> build -> clean을 통해 기존 Q파일을 지워준다.  
+그 후에 Gradle -> Tasks -> other -> compileJava를 통해 자바 파일을 컴파일하면 Q파일이 생성된다.
+IntelliJ를 통해 직접 빌드하는 경우 Build -> Build Project 또는 Build -> Rebuild 통해 프로젝트를 빌드해야 한다.
+또는 main() 함수를 직접 실행해도 Q파일이 생성된다.  
+Q파일을 삭제하고 싶을 때에는 gradle clean 명령어를 실행하여 지울 수 있다.  
+
+> Querydsl은 IntelliJ가 버전업하거나, 스프링이 버전업 하면서 환경 구성 방법이 달라지기도 한다.  
+> 각 버전에 맞는 방법은 직접 찾아서 해야 한다.
+
+### 프로젝트 적용
+
+Querydsl을 사용하는 레포지토리를 정의해보자.  
+기본적인 등록, 수정, 단건 조회는 기본 JPA 방식을 사용하고, 동적 쿼리를 적용해야 하는 목록 조회에 Querydsl을 사용한다.
+
+```java
+package hello.itemservice.repository.jpa;
+
+import static hello.itemservice.domain.QItem.*;
+
+@Repository
+@Transactional
+public class JpaItemRepositoryV3 implements ItemRepository {
+
+    private final EntityManager em;
+    private final JPAQueryFactory query;
+
+    public JpaItemRepositoryV3(EntityManager em) {
+        this.em = em;
+        this.query = new JPAQueryFactory(em);
+    }
+
+    @Override
+    public Item save(Item item) {
+        em.persist(item);
+        return item;
+    }
+
+    @Override
+    public void update(Long itemId, ItemUpdateDto updateParam) {
+        Item findItem = em.find(Item.class, itemId);
+        findItem.setItemName(updateParam.getItemName());
+        findItem.setPrice(updateParam.getPrice());
+        findItem.setQuantity(updateParam.getQuantity());
+    }
+
+    @Override
+    public Optional<Item> findById(Long id) {
+        Item item = em.find(Item.class, id);
+        return Optional.ofNullable(item);
+    }
+
+    public List<Item> findAllOld(ItemSearchCond cond) {
+
+        String itemName = cond.getItemName();
+        Integer maxPrice = cond.getMaxPrice();
+
+        QItem item = QItem.item;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (StringUtils.hasText(itemName)) {
+            builder.and(item.itemName.like("%" + itemName + "%"));
+        }
+        if (maxPrice != null) {
+            builder.and(item.price.loe(maxPrice));
+        }
+
+        List<Item> result = query
+                .select(item)
+                .from(item)
+                .where(builder)
+                .fetch();
+
+        return result;
+    }
+
+    @Override
+    public List<Item> findAll(ItemSearchCond cond) {
+
+        String itemName = cond.getItemName();
+        Integer maxPrice = cond.getMaxPrice();
+
+        return query
+                .select(item)
+                .from(item)
+                .where(likeItemName(itemName), maxPrice(maxPrice))
+                .fetch();
+    }
+
+    private BooleanExpression likeItemName(String itemName) {
+        if (StringUtils.hasText(itemName)) {
+            return item.itemName.like("%" + itemName + "%");
+        }
+        return null;
+    }
+
+    private BooleanExpression maxPrice(Integer maxPrice) {
+        if (maxPrice != null) {
+            return item.price.loe(maxPrice);
+        }
+        return null;
+    }
+}
+```
+Querydsl울 사용하기 위해서는 EntityManager를 주입받고, 이를 이용해서 JPAQueryFactory 객체를 생성해야 한다.
+
+
