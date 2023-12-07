@@ -35,7 +35,23 @@ JPQL은 sql과 유사해서 쿼리 작성이 쉽다는 장점이 있지만, 타�
 JPA에서 공식으로 지원하는 Criteria API도 있다.
 
 ```java
+@Test public void jpaCriteriaQuery() {
+    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+    CriteriaQuery<Member> cq = cb.createQuery(Member.class);
+    Root<Member> root = cq.from(Member.class);
 
+    Path<Integer> age = root.get("age");
+    Predicate between = cb.between(age, 20, 40);
+
+    Path<String> path = root.get("name");
+    Predicate like = cb.like(path, "Kim%");
+
+    CriteriaQuery<Member> query = cq.where( cb.and(between, like) );
+    query.orderBy(cb.desc(age));
+
+    List<Member> resultList = 
+        entityManager.createQuery(query).setMaxResults(3).getResultList(); 
+}
 ```
 
 다만 사용하기 매우 복잡하고, 엔티티의 각 프로퍼티들은 type safe하게 지원되지 않는다.
