@@ -88,7 +88,7 @@ public class Member {
 }
 ```
 
-이제 해당 엔티티를 이용해서 회원을 저장해보자.
+이제 해당 엔티티를 이용해서 회원을 저장, 조회, 삭제, 수정해보자.
 
 ```java
 // src/main/java/hellojpa/JpaMain
@@ -124,11 +124,11 @@ public class JpaMain {
             em.remove(findMember);
 
             /** 회원 수정 */
+            // JPA를 통해 조회, JPA에서 findMember를 관리한다
             Member findMember = em.find(Member.class, 1L);
-            // findMember는 JPA를 통해 가져왔으므로, JPA에서 findMember를 관리한다
             findMember.setName("helloJPA");
 
-            // JPA에서 변경이 됐는지를 commit시점에서 체크하고, 변경이 있으면 update 뭐리를 날린다.
+            // 엔티키가 변경 됐는지를 commit시점에서 체크하고, 변경이 있으면 update 뭐리를 날린다.
             tx.commit();
 
         } catch(Exception e) {
@@ -142,29 +142,24 @@ public class JpaMain {
 }
 ```
 
-**주의점**
-
-- EntityManagerFactory는 하나만 생성해서 애플리케이션 전체에서 공유
-- EntityManager는 thread 간에 공유X (사용하고 버려야 한다).
-- JPA의 모든 데이터 변경은 트랜잭션 안에서 실행
+이 때 주의할 점이 있다.
+EntityManagerFactory는 하나만 생성해서 애플리케이션 전체에서 공유해야 한다 
+이와 달리 EntityManager는 thread 간에 공유되면 안 되고, 각 요청을 처리한 후 버려야 한다.  
+또한 JPA의 모든 데이터 변경은 트랜잭션 안에서 실행해야 한다.
 
 **JPQL 소개**
 
-JPA를 사용하면 엔티티 객체를 중심으로 개발하게 된다.
-이 때 검색 쿼리를 작성하는 것이 문제가 되는데, 검색을 할 때도 테이블이 아닌 엔티티 객체를 대상으로 검색을 하는 것이 적절하다.  
-하지만 필요한 데이터를 DB에서 불러오려면, 결국 검색 조건이 포함된 SQL이 필요하다.
-
-ex: 나이가 18살 이상인 회원을 모두 검색하고 싶다면?  
-여러 테이블을 조인하고, 원하는 데이터를 최적화해서 가져오고,
-필요하면 통계성 쿼리를 날리고… 이런 작업을 하는데 사용하는게 jpql이다.
+JPA를 사용하면 엔티티 객체를 중심으로 개발하게 된다.  
+다만 검색 쿼리를 작성하는 것이 문제가 되는데, 필요한 데이터를 DB에서 불러오려면 검색 조건이 포함된 SQL이 필요하다.  
+여러 테이블을 조인하고, 원하는 데이터를 최적화해서 가져오고, 필요하면 통계성 쿼리를 날리는 등의 복잡한 작업이 필요할 때가 있다.  
+JPA의 JPQL을 사용하면 검색을 할 때도 테이블이 아닌 엔티티 객체를 대상으로 검색할 수 있다.  
 
 ```java
 ※ src/main/java/hellojpa/JpaMain
 public class JpaMain {
     public static void main(String[] args) {
         try {
-            // JPA에서는 테이블을 대상으로 쿼리를 짜지 않는다.
-            // Member 엔티티 객체를 대상으로 쿼리를 구성한다.
+            // 테이블이 아닌 Member 엔티티 객체를 대상으로 쿼리를 구성한다.
             List<Member> result = em.createQuery("select m from Member as m", Member.class).getResultList();
             for(Member member: result) {
                 System.out.println("member.name = " + member.getName());
@@ -181,8 +176,8 @@ public class JpaMain {
 ```
 
 JPA는 SQL을 추상화한 JPQL이라는 객체 지향 쿼리 언어 제공한다.  
-SQL과 문법이 유사하고 SELECT, FROM, WHERE, GROUP BY, HAVING, JOIN을 지원한다.
+JPQL은 SQL과 문법이 유사하고 SELECT, FROM, WHERE, GROUP BY, HAVING, JOIN등의 대부분의 쿼리 기능을 지원한다.
 
-JPQL은 테이블이 아닌 객체를 대상으로 검색하는 객체 지향 쿼리(객체 지향 SQL)
-→ SQL을 추상화했기 때문에 특정 데이터베이스의 SQL에 의존하지 않는다!
-JPQL 입력시 해당 데이터베이스의 방언에 맞게 변형되어 쿼리가 작성된다.
+JPQL은 테이블이 아닌 객체를 대상으로 검색하는 객체 지향 쿼리이다. (객체 지향 SQL)  
+JPQL은 SQL을 추상화했기 때문에 특정 데이터베이스의 SQL에 의존하지 않는다.  
+JPQL 실행 시 해당 데이터베이스의 방언에 맞게 변형되어 쿼리가 날라간다.
