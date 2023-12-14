@@ -1,6 +1,6 @@
 ### 프로젝트 생성
 
-JPA를 사용할 때 persistence.xml 파일을 작성하여 설정할 수 있다.
+JPA를 사용할 때 persistence.xml 파일을 작성하여 관련 설정을 할 수 있다.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -26,19 +26,20 @@ JPA를 사용할 때 persistence.xml 파일을 작성하여 설정할 수 있다
 
 #### 데이터베이스 방언 (dialect)
 
-• 방언: SQL 표준을 지키지 않는 특정 데이터베이스만의 고유한 기능  
--> 각각의 데이터베이스가 제공하는 SQL 문법과 함수는 조금씩 다름
+데이터베이스 방언은 SQL 표준을 지키지 않는 특정 데이터베이스만의 고유한 기능이다.  
+이로 인해 각각의 데이터베이스가 제공하는 SQL 문법과 함수는 조금씩 다르다.
 
-- 가변 문자: MySQL은 VARCHAR, Oracle은 VARCHAR2
-- 페이징: MySQL은 LIMIT , Oracle은 ROWNUM
-- 문자열을 자르는 함수: SQL 표준은 SUBSTRING(), Oracle은 SUBSTR()
+- 가변 문자: MySQL VARCHAR, Oracle VARCHAR2
+- 페이징: MySQL LIMIT , Oracle ROWNUM
+- 문자열을 자르는 함수: SQL SUBSTRING(), Oracle SUBSTR()
 
-하지만 JPA는 특정 데이터베이스에 종속되지 않음
-→ <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
-hibernate.dialect 속성에 지정 시 알아서 해당하는 db의 방언에 맞춰서 바꿔줌
+하지만 JPA는 특정 데이터베이스에 종속되지 않는다.  
+hibernate.dialect 속성에 지정 시 알아서 해당하는 db의 방언에 맞춰서 바꿔준다.  
+`<property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>`
+
 <img src="./images/2_JPA_Start1.png" width="400">
 
-하이버네이트는 40가지 이상의 데이터베이스 방언 지원
+하이버네이트는 40가지 이상의 데이터베이스 방언을 지원한다.
 
 - H2 : `org.hibernate.dialect.H2Dialect`
 - Oracle 10g : `org.hibernate.dialect.Oracle10gDialect`
@@ -49,9 +50,9 @@ hibernate.dialect 속성에 지정 시 알아서 해당하는 db의 방언에 �
 <img src="./images/2_JPA_Start2.png" width="400">
 
 Persistence는 persistence.xml에 작성한 설정정보를 조회해서, EntityManagerFactory를 생성한다.  
-해당 Facotry에서 EntityManager를 생성해서 빈으로 등록하게 되고, 개발자는 이 EntityManager를 주입받아서 사용하게 된다.
+해당 EntityManagerFactory에서 EntityManager를 생성하게 되고, 개발자는 EntityManager를 이용하여 데이터를 다루게 된다.
 
-먼저 다음의 sql 문으로 테이블을 생성한다.
+예제 확인을 위해 먼저 다음의 sql 문으로 테이블을 생성한다.
 
 ```sql
 create table Member (
@@ -66,46 +67,46 @@ create table Member (
 ```java
 // src/main/java/hellojpa/Member
 @Entity
-// @Table("Member") : 기본 설정됨, Member 테이블에 매핑
 public class Member {
-  @Id
-  private Long id;
+    @Id
+    private Long id;
 
-// @Column(name="name")  : 기본 설정됨, name column에 매핑
-  private String name;
+    private String name;
 
-  public Member() {   // JPA에서는 기본 생성자 작성이 필요함
-  }
+    // JPA 엔티티는 기본 생성자 작성이 필수
+    public Member() {
+    }
+    public Member(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
-  public Member(Long id, String name) {
-      this.id = id;
-      this.name = name;
-  }
-  public void setId(Long id) { this.id = id; }
-  public void setName(String name) { this.name = name; }
-  public Long getId() { return id; }
-  public String getName() { return name; }
+    public void setId(Long id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
+    public Long getId() { return id; }
+    public String getName() { return name; }
 }
 ```
 
-실습 - 회원 저장
+이제 해당 엔티티를 이용해서 회원을 저장해보자.
 
 ```java
 // src/main/java/hellojpa/JpaMain
 
 public class JpaMain {
     public static void main(String[] args) {
-        // EntityManagerFactory는 애플리케이션 로딩시점에 하나만 만듦
+        // EntityManagerFactory는 애플리케이션 로딩시점에 하나만 만들어야 함
         // 읽어올 설정정보(persistence-unit)를 지정해서 생성
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("hello");
 
-        // EntityManager는 하나의 Transaction마다 새롭게 생성되어야 한다
-        // 결국 고객의 요청이 올 때마다 생성 필요
+        // EntityManager는 하나의 Transaction마다 새롭게 생성되어야 함
+        // 따라서 고객의 요청이 올 때마다 생성 필요
         EntityManager em = emf.createEntityManager();
 
-        // 모든 데이터 변경은 Transaction 안에서!
+        // 모든 데이터 변경은 Transaction 안에서 수행
+        // db transaction 시작
         EntityTransaction tx = em.getTransaction();
-        tx.begin();  // db transaction 시작
+        tx.begin();
 
         try {
             /** 회원 등록 */
