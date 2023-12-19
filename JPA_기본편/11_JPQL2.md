@@ -454,3 +454,97 @@ Hibernate:
 직접 DTO를 적용해서 프로젝션해서 조회해오거나, 조회한 데이터를 조합하여 DTO로 변환해서 반환하는 방식을 사용하면 된다.
 
 ### 4) 다형성 쿼리
+
+상속 관계를 매핑한 엔티티를 조회할 때 다형성 쿼리를 사용할 수 있다.  
+다음과 같이 Item을 상속받은 Album, Movie, Book 엔티티가 존재한다고 하자.
+
+<img src="./images/11_JPQL2_9.png" width="400" />
+
+TYPE 함수를 이용하면 조회 대상을 특정 자식으로 한정해서 조회하는 식으로 쿼리를 작성할 수 있다.  
+예를 들어 Item 중에 Book, Movie를 조회하는 쿼리를 다음과 같이 작성할 수 있다.
+
+```sql
+-- JPQL
+select i from Item i
+  where type(i) IN (Book, Movie)
+
+-- SQL (테이블 전략에 따라 쿼리는 달라짐)
+select i from i
+  where i.DTYPE in ('B', 'M')
+```
+
+TREAT를 이용하면 상속 구조에서 부모 타입을 특정 자식 타입으로 다룰 수 있다.  
+자바의 타입 캐스팅과 유사한 개념으로 이해할 수 있다.  
+FROM, WHERE, SELECT 절에서 사용할 수 있다.
+
+예를 들어 Item 엔티티에서 author(Book의 속성)가 'kim'인 데이터를 조회하고 싶다고 하자.
+
+```sql
+-- JPQL
+select i from Item i
+  where treat(i as Book).auther = 'kim'
+
+-- SQL (테이블 전략에 따라 쿼리는 달라짐)
+select i.* from Item i
+  where i.DTYPE = 'B' and i.auther = 'kim'
+```
+
+### 5) 엔티티 직접 사용
+
+JPQL에서 엔티티를 직접 사용하면, SQL에서 해당 엔티티의 기본 키 값을 사용하게 된다.  
+다음의 예시에서는 `count(m)`을 통해 Member 엔티티의 id의 개수를 조회하고 있다.
+
+```sql
+-- JPQL
+select count(m.id) from Member m  -- 엔티티의 id를 사용
+select count(m) from Member m  -- 엔티티를 직접 사용
+
+-- SQL
+select count(m.id) as cnt from Member m
+```
+
+다음은 엔티티를 파라미터 바인딩 시 전달해서, 기본키를 통해 where 조건을 적용하는 예시이다.  
+엔티티를 전달하는 식으로 쿼리를 작성하거나, 또는 식별자를 직접 전달해서 쿼리를 작성해도 동일한 SQL을 얻게 된다.
+
+```java
+// 엔티티 사용
+String jpql = "select m from Member m where m = :member";
+List resultList = em.createQuery(jpql)
+        .setParameter("member", member)
+        .getResultList();
+
+// 외래키 값으로 직접 비교
+String jpql = "select m from Member m where m.id = :memberId";
+List resultList = em.createQuery(jpql)
+        .setParameter("memberId", memberId)
+        .getResultList();
+```
+
+두 경우 모두 실행된 SQL은 다음과 같다.
+
+```sql
+select m.* from Member m where m.id=?
+```
+
+연관관계 엔티티를 JQPL에 전달하면 외래 키 값으로 비교하는데 사용할 수 있다.
+
+```java
+// 엔티티 사용
+Team team = em.find(Team.class, 1L);
+String qlString = "select m from Member m where m.team = :team";
+List resultList = em.createQuery(qlString)
+        .setParameter("team", team)
+        .getResultList();
+
+// 외래키 값으로 직접 비교
+String qlString = "select m from Member m where m.team.id = :teamId";
+List resultList = em.createQuery(qlString)
+        .setParameter("teamId", teamId)
+        .getResultList();
+```
+
+실행된 SQL은 다음과 같다.
+
+```sql
+select m.* from Member m where m.team_id=?
+```
