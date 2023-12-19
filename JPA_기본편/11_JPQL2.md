@@ -548,3 +548,113 @@ List resultList = em.createQuery(qlString)
 ```sql
 select m.* from Member m where m.team_id=?
 ```
+
+### 6) Named 쿼리
+
+Named 쿼리는 특정 JPQL을 미리 정의해서 이름을 부여해두고 사용하는 것이다.  
+정적 쿼리만 미리 정의해서 사용 가능하고, 어노테이션 또는 XML에 쿼리를 정의해서 사용한다.
+
+Named 쿼리로 등록한 JPQL의 경우 애플리케이션 로딩 시점에 SQL로 변환한 후 캐시해서 재사용한다.  
+애플리케이션 로딩 시점에 쿼리가 변환되기 때문에, 로딩 시점에 쿼리에 대한 검증이 되어 좀 더 안전하게 쿼리를 사용할 수 있다.
+
+먼저 엔티티에 @NamedQuery 어노테이션을 적용해서 Named 쿼리를 정의할 수 있다.
+
+```java
+@Entity
+@NamedQuery(
+    name = "Member.findByUsername",   // 쿼리에 붙일 이름
+    query = "select m from Member m where m.username = :username"  // 재활용할 쿼리
+)
+public class Member {
+    …
+}
+```
+
+```java
+List<Member> resultList = em.createNamedQuery("Member.findByUsername", Member.class)
+        .setParameter("username", "회원1")
+        .getResultList();
+```
+
+또는 다음과 같이 persistence.xml에 Named 쿼리를 등록해서 사용할 수 있다.
+
+```xml
+<!--META-INF/persistence.xml -->
+<persistence-unit name="jpabook" >
+    <mapping-file>META-INF/ormMember.xml</mapping-file>
+    ...
+</persistence-unit>
+```
+
+```xml
+<!--META-INF/ormMember.xml-->
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm" version="2.1">
+    <named-query name="Member.findByUsername">
+        <query><![CDATA[
+            select m
+            from Member m
+            where m.username = :username
+        ]]></query>
+    </named-query>
+    <named-query name="Member.count">
+        <query>select count(m) from Member m</query>
+    </named-query>
+</entity-mappings>
+```
+
+실무에서는 보통 스프링 데이터 JPA를 사용하는데, @Query 어노테이션을 인터페이스 메서드 위에 붙여서 특정 메서드 호출 시 실행 할 JPQL을 지정할 수 있다.  
+이 때 해당 쿼리가 NamedQuery로 등록되는 식으로 동작한다.
+
+### 7) 벌크 연산
+
+벌크 연산은 한 번에 여러개의 row에 대한 수정 작업을 할 수 있도록 지원한다.  
+예를 들어 재고가 10개 미만인 모든 상품의 가격을 10% 상승시키고 싶다고 하자.  
+JPA의 변경 감지 기능으로 수정을 하려면 다음과 같은 과정을 거쳐야 한다.
+
+1. 재고가 10개 미만인 상품을 리스트로 조회한다.
+2. 상품 엔티티의 가격을 10% 증가한다.
+3. 트랜잭션 커밋 시점에 변경감지가 동작한다.
+
+이 때 변경된 데이터가 100건이라면 100번의 UPDATE SQL이 실행되어야 한다.  
+너무 많은 쿼리가 실행되어야 하는 문제가 존재한다.
+
+벌크 연산을 사용하면 쿼리 한 번으로 테이블의 여러 row를 한 번에 변경할 수 있다.  
+executeUpdate()를 통해 실행하여 영향 받은 엔티티 수를 반환 받게 된다.  
+UPDATE, DELETE가 기본 지원되고, 하이버네이트에서는 (insert into .. select) 문도 지원한다.
+
+```java
+String qlString = "update Product p " +
+                  "set p.price = p.price * 1.1 " +
+                  "where p.stockAmount < :stockAmount";
+int resultCount = em.createQuery(qlString)
+        .setParameter("stockAmount", 10)
+        .executeUpdate();
+```
+
+다만 주의해야 할 점은, 벌크 연산은 영속성 컨텍스트를 무시하고 데이터베이스에 직접 쿼리를 날린다는 점이다.  
+따라서 벌크 연산의 결과와 영속성 컨텍스트에 남아있는 데이터의 내용이 불일치할 수 있다.  
+이러한 문제를 해결하기 위해 벌크 연산을 먼저 실행하고 데이터를 조회하는 식으로 로직을 구성하거나, 벌크 연산 수행 후 영속성 컨텍스트를 한 번 초기화해줘야 한다.
+
+```java
+// src/main/java/hellojpa/JpaMain
+Member member1 = new Member();
+member1.setUsername("member1");
+member1.setAge(10);
+em.persist(member1);
+
+int resultCount = em.createQuery("update Member m set m.age = 20")
+        .executeUpdate();
+em.clear();   // 영속성 컨텍스트 초기화
+Member findMember = em.find(Member.class, member1.getId());  // db에서 member1을 다시 조회
+System.out.println("findMember.age = " + findMember.getAge());
+```
+
+JPA의 기본 FLUSH 모드에 따라 JPQL 쿼리 실행 전에 영속성 컨텍스트의 변경사항들이 플러시된다.  
+이후에 JPQL 벌크 연산을 통해 데이터가 수정되고, em.clear()를 통해 영속성 컨텍스트를 초기화한다.  
+em.find()를 수행하는 시점에는 다시 select 문을 통해 데이터를 조회해오고, 정상적으로 영속성 컨텍스트에 데이터가 들어오게 된다.
+
+```bash
+# 만약 em.clear()를 안했다면, 벌크 연산 이전의 member1.age가 출력되었을 것
+findMember.age = 20
+```
