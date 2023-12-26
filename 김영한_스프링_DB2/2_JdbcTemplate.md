@@ -2,13 +2,13 @@
 
 sql을 직접 작성해서 사용하길 원하는 경우 JdbcTemplate을 사용하면 된다.
 
-JdbcTemplate의 경우 spring-jdbc에 포함되어있는 기술이고, 별다른 설정도 필요 없어서 간단하게 사용할 수 있다.
+JdbcTemplate은 spring-jdbc에 포함되어 있는 기술이고, 별다른 설정도 필요 없어서 간단하게 사용할 수 있다.  
 build.gradle에 spring-jdbc를 추가하고, DB 사용을 위한 h2 database 라이브러리를 추가하면 설정이 완료된다.
 
 ```groovy
-//JdbcTemplate 추가
+// JdbcTemplate 추가
 implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-//H2 데이터베이스 추가
+// H2 데이터베이스 추가
 runtimeOnly 'com.h2database:h2'
 ```
 
@@ -57,11 +57,11 @@ public class JdbcTemplateItemRepositoryV1 implements ItemRepository {
 해당 template 객체를 이용해서 저장, 수정, 조회 등의 db 작업을 진행한다.
 
 데이터 저장 및 수정 시에는 template.update 메서드를 사용한다.  
-이 때 db 설계시 정한 대로 식별자인 id에 자동 증가 키를 삽입하도록 해야 한다.  
-이를 위해 데이터 저장 시 template에 id를 바인딩하지 않아야 하는데, 추후에 데이터에 삽입된 id를 알기 위해서는 db에 다시 쿼리를 날려야 한다.
+식별자인 id에는 자동 증가된 키를 삽입해야 하기 떄문에, id를 바인딩하지 않는다.
 
+이 때 키는 db에서 자동으로 삽입이 되기 때문에, 해당 id를 알기 위해서는 데이터를 저장한 후 db에 조회 쿼리를 다시 날려야 한다.  
 KeyHolder를 이용하면 이 부분이 자동화 된다.  
-template.update 메서드의 첫번째 파라미터로 람다를 넘겨서, KeyHolder를 이용해서 prepareStatement를 생성하도록 한다.
+template.update 메서드의 첫번째 파라미터로 람다를 넘겨서, KeyHolder를 이용해서 prepareStatement를 생성하도록 한다.  
 데이터를 저장한 후에는 keyHolder.getKey()를 통해 삽입된 자동 증가 키를 얻어 올 수 있다.
 
 다음으로 수정, 단건 조회의 경우 다음과 같이 간단하게 작성할 수 있다.
@@ -145,7 +145,7 @@ select id, item_name, price, quantity from item
     and price <= ?
 ```
 
-위와 같이 동적으로 쿼리를 처리하기 위해서 다음과 같이 복잡한 로직을 작성해야 한다.
+위와 같이 동적으로 쿼리를 처리하기 위해서 복잡하고 지저분한 로직을 작성해야 한다.
 
 ```java
 @Override
@@ -382,7 +382,7 @@ KeyHolder keyHolder = new GeneratedKeyHolder();
 template.update(sql, param, keyHolder);
 ```
 
-또한 V2 레포지토리에서는 Mapper 함수 또한 BeanPropertyRowMapper를 이용해서 더욱 간단하게 작성했다. 
+또한 V2 레포지토리에서는 Mapper 함수 또한 BeanPropertyRowMapper를 이용해서 더욱 간단하게 작성했다.
 
 ```java
 private RowMapper<Item> itemRowMapper() {
@@ -439,12 +439,13 @@ public class JdbcTemplateItemRepositoryV3 implements ItemRepository {
     }
 }
 ```
+
 SimpleJdbcInsert 객체를 생성하면서 삽입할 테이블과 자동 생성되는 컬럼을 지정한다. (삽입할 칼럼명의 경우 생략할 수 있다.)  
 jdbcInsert.executeAndReturnKey(param)를 통해 SqlParameterSource에 각 파라미터의 바인딩을 담아서 데이터를 삽입한다.
 
 ### JdbcTemplate 정리
 
-지금까지 확인한 내용 외에도 JdbcTemplate은 다양한 기능을 제공한다.  
+지금까지 확인한 내용 외에도 JdbcTemplate은 다양한 기능을 제공한다.
 
 단건 조회 시 특정 칼럼이나 count 등의 특정 값을 받아오는 경우 다음과 같이 작성할 수 있다.
 
