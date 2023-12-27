@@ -212,7 +212,6 @@ public class JdbcTemplateV1Config {
 package hello.itemservice;
 
 @Slf4j
-//@Import(MemoryConfig.class)
 @Import(JdbcTemplateV1Config.class)
 @SpringBootApplication(scanBasePackages = "hello.itemservice.web")
 public class ItemServiceApplication {
@@ -247,10 +246,11 @@ template.update(sql,
     itemId);
 ```
 
-이렇게 파라미터를 바인딩할 경우 코드는 간단하지만, 파라미터의 개수가 늘어나서 순서가 혼동될 경우 매개변수가 뒤바뀌어서 저장되는 심각한 장애가 발생할 수 있다.
+이렇게 파라미터를 바인딩할 경우 코드는 간단하지만, 파라미터의 개수가 늘어나서 순서가 혼동될 경우 매개변수가 뒤바뀌어서 심각한 장애가 발생할 수 있다.
 
 이를 방지하기 위해서 NamedParameterJdbcTemplate을 사용할 수 있다.  
-NamedParameterJdbcTemplate은 이름 기반 파라미터 바인딩을 지원하는 템플릿으로, 기존의 ? 대신 `:파라미터 이름` 형식으로 매개변수를 sql에 삽입한다.
+NamedParameterJdbcTemplate은 이름 기반 파라미터 바인딩을 지원하는 템플릿이다.  
+기존의 ? 대신 `:파라미터 이름` 형식으로 매개변수를 sql에 삽입한다.
 
 ```java
 insert into item (item_name, price, quantity) " +
@@ -302,7 +302,7 @@ public class JdbcTemplateItemRepositoryV2 implements ItemRepository {
                 .addValue("itemName", updateParam.getItemName())
                 .addValue("price", updateParam.getPrice())
                 .addValue("quantity", updateParam.getQuantity())
-                .addValue("id", itemId); //이 부분이 별도로 필요하다.
+                .addValue("id", itemId);
 
         template.update(sql, param);
     }
@@ -369,11 +369,11 @@ SqlParameterSource param = new MapSqlParameterSource()
     .addValue("itemName", updateParam.getItemName())
     .addValue("price", updateParam.getPrice())
     .addValue("quantity", updateParam.getQuantity())
-    .addValue("id",itemId);
+    .addValue("id", itemId);
 template.update(sql, param);
 ```
 
-BeanPropertySqlParameterSource 구현체의 경우 생성자에 객체를 넘기면 자바빈 프로파티 규약을 통해 매핑 객체를 생성한다.  
+`BeanPropertySqlParameterSource` 구현체의 경우 생성자에 객체를 넘기면 자바빈 프로파티 규약을 통해 매핑 객체를 생성한다.  
 내부에서는 각각의 getter를 순회하면서 Map 형태의 객체를 생성한다.
 
 ```java
@@ -382,7 +382,7 @@ KeyHolder keyHolder = new GeneratedKeyHolder();
 template.update(sql, param, keyHolder);
 ```
 
-또한 V2 레포지토리에서는 Mapper 함수 또한 BeanPropertyRowMapper를 이용해서 더욱 간단하게 작성했다.
+Mapper 함수 또한 BeanPropertyRowMapper를 이용해서 더욱 간단하게 작성했다.
 
 ```java
 private RowMapper<Item> itemRowMapper() {
@@ -406,7 +406,7 @@ item.setPrice(rs.getInt("price"));
 select item_name as itemName
 ```
 
-다만 db의 snake_case를 자바 객체의 camelCase로 바꾸는 정도의 작업은 자동으로 해준다.
+db의 snake_case를 자바 객체의 camelCase로 바꾸는 정도의 작업은 자동으로 해준다.
 
 ### SimpleJdbcInsert
 
