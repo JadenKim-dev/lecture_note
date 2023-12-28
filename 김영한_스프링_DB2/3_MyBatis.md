@@ -1,7 +1,7 @@
 ### MyBatis 소개
 
 MyBatis는 JdbcTemplate에 비해 더 많은 기능을 제공하는 SQLMapper이다.  
-MyBatis의 장점은 쿼리를 xml 안에 작성하기 때문에 여러 줄의 쿼리를 작성하기 쉽다.
+MyBatis은 쿼리를 xml 안에 작성하기 때문에 여러 줄의 쿼리를 편리하게 작성할 수 있다.
 
 ```xml
 <update id="update">
@@ -13,7 +13,7 @@ MyBatis의 장점은 쿼리를 xml 안에 작성하기 때문에 여러 줄의 �
 </update>
 ```
 
-또한 동적 쿼리를 작성할 때 JdbcTemplate은 string concatenation으로 직접 쿼리를 문자열로 붙여나갔다.  
+JdbcTemplate은 동적 쿼리 작성 시 string concatenation으로 직접 쿼리를 문자열로 붙여나갔기 때문에 복잡한 쿼리를 작성하기 어려웠다.  
 이와 달리 MyBatis에서는 xml을 이용하여 보다 직관적으로 동적 쿼리를 구성할 수 있다.
 
 ```xml
@@ -32,7 +32,7 @@ MyBatis의 장점은 쿼리를 xml 안에 작성하기 때문에 여러 줄의 �
 ```
 
 다만 MyBatis의 경우 별도로 라이브러리를 설치하고 설정해야 한다.  
-JdbcTemplate은 스프링에 내장되어 있기 때문에 좀 더 접근성이 좋은 편이다.
+JdbcTemplate은 jdbc 자체에 내장되어 있기 때문에 좀 더 접근성이 좋은 편이다.
 
 ### MyBatis 설정
 
@@ -64,7 +64,7 @@ logging은 특정 라이브러리에서 실행되는 mybatis 쿼리에 대한 �
 ### 적용1 - 기본
 
 이제 MyBatis를 이용해서 데이터에 접근해보자.  
-MyBatis를 사용하기 위해서는 먼저 각각의 매핑 xml 호출에 사용할 매퍼 인터페이스를 정의해야 한다.
+MyBatis를 사용하기 위해서는 먼저 각각의 매핑 xml 호출에 사용할 Mapper 인터페이스를 정의해야 한다.
 
 ```java
 package hello.itemservice.repository.mybatis;
@@ -83,10 +83,10 @@ public interface ItemMapper {
 ```
 
 이제 각 메서드에 매핑되는 xml 파일을 작성하면 된다.  
-자바 코드가 아니므로 src/main/resources 하위에 작성하되, 동일한 라이브러리 위치에 작성해야 한다.
+자바 코드가 아니므로 src/main/resources 하위에 작성하되, 동일한 라이브러리 위치에 작성해야 한다.  
 위 인터페이스의 위치와 맞게 src/main/resources/hello/itemservice/repository/mybatis/ItemMapper.xml 로 작성한다.
 
-> xml 파일의 위치를 임의로 설정하고 싶다면 application.properties에 설정을 추가하면 된다.
+> xml 파일의 위치를 임의로 설정하고 싶다면 application.properties에 설정을 추가하면 된다.  
 > ex) `mybatis.mapper-locations=classpath:mapper/**/*.xml`
 
 ```xml
@@ -130,7 +130,7 @@ public interface ItemMapper {
 </mapper>
 ```
 
-xml의 mapper 태그의 namespace에는 매칭되는 매퍼 인터페이스를 지정하면 된다.  
+xml의 mapper 태그의 namespace에는 매칭되는 매퍼 인터페이스를 지정하면 된다.
 
 각 xml 태그의 id는 인터페이스의 매칭되는 메서드의 이름을 적으면 된다.  
 파라미터들은 #{}로 명시한다.  
@@ -138,7 +138,7 @@ xml의 mapper 태그의 namespace에는 매칭되는 매퍼 인터페이스를 �
 메서드에서 여러 개의 파라미터를 받을 경우에는, 메서드의 각 파라미터들에 @Param을 붙여서 매핑해주어야 한다.(update)
 
 insert 문의 경우 insert 태그를 사용한다.  
-db의 자동 생성된 키를 사용할 때에는 useGeneratedKeys에 true를 넣고, keyProperty에 해당하는 프로퍼티 이름을 적으면 된다.  
+db의 자동 생성된 키를 사용할 때에는 useGeneratedKeys에 true를 넣고, keyProperty에 해당하는 프로퍼티 이름을 적으면 된다.
 
 update, select 문도 마찬가지로 각각 update, select 태그를 사용하면 된다.  
 select문의 경우 쿼리의 결과를 resultType에 지정한 객체로 자동으로 변환해준다.  
@@ -156,7 +156,7 @@ where 태그 내에 if 태그를 작성하게 되는데, test에 작성한 조�
 ### 적용2 - 설정과 실행
 
 이제 MyBatis ItemMapper를 사용하는 레포지토리를 구현하자.  
-인터페이스로 정의한 Mapper의 경우 자동으로 구현체를 생성하여 의존성이 주입된다.  
+인터페이스로 정의한 Mapper의 경우 자동으로 구현체를 생성하여 의존성이 주입된다.
 
 ```java
 package hello.itemservice.repository.mybatis;
@@ -258,7 +258,7 @@ itemMapper class=class com.sun.proxy.$Proxy66
 ### MyBatis 동적 쿼리
 
 MyBatis는 동적 쿼리를 편리하게 사용하기 위한 다양한 태그들을 제공한다.  
-if, choose (when, otherwise), trim (where, set), foreach 등의 태그가 존재한다.  
+if, choose (when, otherwise), trim (where, set), foreach 등의 태그가 존재한다.
 
 ```xml
 <select id="findActiveBlogLike" resultType="Blog">
@@ -293,7 +293,7 @@ if, choose (when, otherwise), trim (where, set), foreach 등의 태그가 존재
 ### MyBatis 기타 기능
 
 MyBatis에서는 어노테이션을 통한 쿼리 작성을 지원한다.  
-다만 동적 쿼리는 만들 수 없기 때문에 쿼리가 간단한 경우에만 사용해야 한다. 
+다만 동적 쿼리는 만들 수 없기 때문에 쿼리가 간단한 경우에만 사용해야 한다.
 
 ```java
 @Select("select id, item_name, price, quantity from item where id=#{id}")
@@ -306,7 +306,7 @@ Optional<Item> findById(Long id);
 ```java
 @Select("select * from user where ${column} = #{value}")
 User findByColumn(
-    @Param("column") String column, 
+    @Param("column") String column,
     @Param("value") String value
 );
 ```
@@ -325,7 +325,7 @@ User findByColumn(
     from some_table t1
         cross join some_table t2
 </select>
-``` 
+```
 
 ```xml
 <sql id="sometable">
