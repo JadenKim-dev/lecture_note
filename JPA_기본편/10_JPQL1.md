@@ -116,13 +116,13 @@ List<Member> memberList = dbconn.executeQuery("select * from member");
 
 ### 2) JPQL - 기본 문법과 쿼리 API
 
-JPQL은 SQL을 추상화한 것으로, 결국 SQL로 변환되어 실행된다.  
+JPQL은 SQL을 추상화한 것으로, 최종적으로는 SQL로 변환되어 실행된다.  
 JPQL의 예시는 다음과 같다.
 
 `select m from Member as m where m.age > 18`
 
-JPQL 작성 시 엔티티와 속성은 대소문자를 구분하고(Member, age), JPQL 키워드는 대소문자를 구분하지 않는다. (SELECT, FROM, where)
-또한 테이블 이름이 아닌 엔티티 이름(Member)을 사용하고, 엔티티에 대한 별칭은 필수이다.(m)  
+JPQL 작성 시 엔티티와 속성은 대소문자를 구분하고(Member, age), JPQL 키워드는 대소문자를 구분하지 않는다(SELECT, FROM, where).  
+또한 테이블 이름이 아닌 엔티티 이름(Member)을 사용하고, 엔티티에 대한 별칭은 필수이다(m).  
 별칭 지정 시 as는 생략 가능하다.
 
 SELECT, UPDATE, DELETE 문의 형식은 다음과 같다.
@@ -146,7 +146,7 @@ delete_절
 ```
 
 select 절에서는 COUNT, SUM 처럼 통계값을 조회하는 것도 가능하다.  
-이 때 집합 기능을 사용하기 위해 GROUP BY, HAVING 절을 사용하거나, 정렬을 위해 ORDER BY 절을 사용할 수 있다.
+이 때 집합 기능을 사용하기 위해 GROUP BY, HAVING 절을 사용하거나, 정렬을 위해 ORDER BY 절을 사용할 수도 있다.
 
 ```bash
 select
@@ -167,14 +167,14 @@ TypedQuery<Member> query = em.createQuery("select m from Member m", Member.class
 // String 타입의 컬럼 조회 → 반환 타입으로 TypedQuery<String> 사용
 TypedQuery<String> query2 = em.createQuery("select m.username from Member m", String.class);
 
-// String, int 2가지 타입의 컬럼 조회 → Query 사용
+// String, int 2가지 타입의 컬럼을 함께 조회 → Query 사용
 Query query3 = em.createQuery("select m.username, m.age from Member m");
 ```
 
 쿼리를 통한 결과 조회시 데이터가 하나 이상이면 `query.getResultList()`를 통해 리스트로 반환받으면 된다.  
 결과가 정확히 하나인 경우에는 `query.getSingleResult()`을 통해 단일 객체로 반환받으면 된다.  
-단 조회 결과가 없을 경우 `query.getResultList()`를 사용하면 빈 리스트를 받지만, `query.getSingleResult()`를 사용하면 `javax.persistence.NoResultException` 이 발생한다.  
-또한 `query.getSingleResult()`의 결과가 둘 이상이면 `javax.persistence.NonUniqueResultException`이 발생한다.
+단 조회 결과가 없을 경우 `query.getResultList()`를 사용하면 빈 리스트를 받지만, `query.getSingleResult()`를 사용하면 `javax.persistence.NoResultException` 예외가 발생한다.  
+또한 `query.getSingleResult()`의 결과가 둘 이상이면 `javax.persistence.NonUniqueResultException` 예외가 발생한다.
 
 ```java
 TypedQuery<Member> query = em.createQuery("select m from Member m", Member.class);
