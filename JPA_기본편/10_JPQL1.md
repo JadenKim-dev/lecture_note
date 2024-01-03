@@ -229,14 +229,15 @@ findMember.setAge(20);
 ```
 
 ```bash
-Hibernate:    # 변경감지에 의해 정상적으로 update가 이루어짐
+Hibernate:    # 변경 감지에 의해 정상적으로 update가 이루어짐
     /* update
         hellojpa.Member */ update
             Member
         …
 ```
 
-엔티티 프로젝션 사용 시 createQuery() 에서 파라미터로 클래스 타입을 넘겨주면 연관 관계에 있는 엔티티를 JOIN을 통해 함께 가져온다.
+연관 엔티티로 프로젝션을 할 때에는 createQuery() 에서 파라미터로 연관 엔티티의 클래스 타입을 넘겨준다.  
+이 경우 연관 관계에 있는 엔티티를 JOIN을 통해 가져온다.
 
 ```java
 List<Team> result = em.createQuery("select m.team from Member m", Team.class)
@@ -260,7 +261,7 @@ Hibernate:
 `select t from Member m join m.team t`  
 가능한 SQL과 형식이 유사해야 변환된 쿼리를 예측하기 좋고 관리하기도 쉽다.
 
-동일한 인터페이스를 통해 임베디드 타입을 엔티티와 함께 프로젝션해서 가져올 수 있다.
+동일한 인터페이스를 통해 임베디드 타입으로 프로젝션해서 가져오는 것도 가능하다.
 
 ```java
 em.createQuery("select o.address from Order o", Address.class)
@@ -296,10 +297,10 @@ Hibernate:
             Member member0_
 ```
 
-문제는 다음과 같이 임의의 데이터를 선택하여 조회하는 경우이다.  
+다음과 같이 임의의 데이터를 조합하여 함께 조회해야 하는 경우도 있다.  
 `SELECT m.username, m.age FROM Member m`
 
-이 경우에는 Query 타입으로 조회하는 것이 가능하다.  
+이 경우에는 Query 타입으로 조회할 수 있다.  
 `query.getResultList()`를 통해 조회한 결과를 List 타입으로 받을 수 있다.  
 List 안의 각 Object를 Object[]로 캐스팅하면 각 인덱스에 조회한 데이터가 저장되어 있다.
 
@@ -326,7 +327,7 @@ List<Object[]> resultList = em.createQuery("select distinct m.age, m.username fr
 Object[] result = resultList.get(0);
 ```
 
-또는 new 명령어를 이용하여 DTO로 바로 조회하는 것도 가능하다.
+또는 new 명령어를 이용하여 DTO로 바로 조회하는 것도 가능하다.  
 이 때 DTO 부분에는 패키지 명을 포함한 전체 DTO 클래스명을 입력해야 하고, DTO 클래스에는 순서와 타입이 일치하는 생성자가 정의되어 있어야 한다.
 
 ```java
@@ -352,7 +353,7 @@ MemberDTO memberDTO = result.get(0);
 ```
 
 가장 깔끔한 방법이지만, 전체 DTO 클래스의 경로명을 적어야 하는 불편함이 있긴 하다.  
-QueryDSL을 사용하면 이런 불편함이 해결된다.
+QueryDSL을 사용하면 이런 불편함을 해결할 수 있다.
 
 ### 4) 페이징
 
