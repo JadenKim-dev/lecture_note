@@ -83,10 +83,10 @@ public interface ItemMapper {
 ```
 
 이제 각 메서드에 매핑되는 xml 파일을 작성하면 된다.  
-자바 코드가 아니므로 src/main/resources 하위에 작성하되, 동일한 라이브러리 위치에 작성해야 한다.  
+자바 코드가 아니므로 src/main/resources 하위에 작성하되, 동일한 라이브러리 위치에 작성해야 한다.
 위 인터페이스의 위치와 맞게 src/main/resources/hello/itemservice/repository/mybatis/ItemMapper.xml 로 작성한다.
 
-> xml 파일의 위치를 임의로 설정하고 싶다면 application.properties에 설정을 추가하면 된다.  
+> xml 파일의 위치를 임의로 설정하고 싶다면 application.properties에 설정을 추가하면 된다.
 > ex) `mybatis.mapper-locations=classpath:mapper/**/*.xml`
 
 ```xml
@@ -245,7 +245,7 @@ public class ItemServiceApplication {
 
 어플리케이션 실행 시점에 MyBatis Spring 연동 모듈에서는 Mapper 인터페이스들을 찾아서 읽어오게 된다.  
 이를 바탕으로 동적 프록시 객체를 생성하고, 스프링 컨테이너에 등록하게 된다.  
-레포지토리 단에서는 이 때 생성된 프록시 객체를 주입받아서 사용하게 된다.  
+레포지토리 단에서는 이 때 생성된 프록시 객체를 주입받아서 사용하게 된다.
 실제로 레포지토리 단에서 주입받은 객체의 클레스를 출력하면 다음과 같이 확인할 수 있다.
 
 ```
