@@ -499,9 +499,10 @@ Hibernate:
             member0_.USERNAME=team1_.name
 ```
 
-JPA 2.1부터는 ON 절을 활용해서 JOIN이 가능하도록 지원한다.  
-이를 통해 조인 대상을 ON 절 조건에 맞게 필터링하는 것이 가능하다.  
-아래는 회원과 팀을 조인하면서, 팀 이름이 teamA인 팀만 조인하는 예시이다.
+JPA 2.1부터는 JOIN 절에 ON 절을 활용하는 것이 가능하다.  
+이를 통해 조인 대상이 되는 열을 ON 절 조건으로 필터링할 수 있다.  
+아래는 회원과 팀을 조인하면서, 팀 이름이 teamA인 팀만 조인하는 예시이다.  
+ON 절에 외래키인 member.teamId에 대한 일치 조건이 작성되고, 여기에 팀 이름에 대한 조건이 추가되었다.
 
 ```java
 // src/main/java/hellojpa/JPAMain
