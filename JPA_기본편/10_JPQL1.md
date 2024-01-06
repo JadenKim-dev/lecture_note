@@ -555,7 +555,8 @@ Hibernate:
 ### 6) 서브 쿼리
 
 서브쿼리는 쿼리 안에서 추가로 쿼리를 만들어서 사용하는 것이다.  
-괄호 안에 서브 쿼리를 작성해서, 해당 쿼리의 결과를 이용하는 형식으로 본 쿼리를 작성한다.  
+괄호 안에 서브 쿼리를 작성해서, 해당 쿼리의 결과를 이용하는 형식으로 본 쿼리를 작성한다.
+
 예를 들어 나이가 평균보다 많은 회원을 조회하는 쿼리를 다음과 같이 작성할 수 있다.
 
 ```sql
@@ -567,14 +568,17 @@ select m from Member m where m.age > (select avg(m2.age) from Member m2)
 
 한 건이라도 주문한 고객을 조회하는 쿼리는 다음과 같다.  
 이 경우에는 본 쿼리에 있는 m을 가져와서 서브 쿼리의 where 절에 사용해야 한다.  
-(다만 애초에 SQL에서 이런 식으로 서브쿼리를 작성하면 성능이 좋지 않음)
+(다만 이런 식으로 서브쿼리를 작성하면 성능이 좋지 않음)
 
 ```sql
 select m from Member m where (select count(o) from Order o where m = o.member) > 0
 ```
 
+#### 다양한 절을 사용한 서브쿼리 (EXISTS, ALL, ANY, IN)
+
 또한 여러 절들을 서브쿼리와 함께 사용해서 다양한 조건을 쿼리에 적용할 수 있다.  
-먼저 EXISTS는 서브쿼리에 결과가 존재하면 True인 식으로 동작한다.  
+먼저 EXISTS는 서브쿼리에 결과가 존재하면 True인 식으로 동작한다.
+
 예를 들어 팀A 소속인 회원을 조회한다고 하자.  
 서브 쿼리 내에서는 특정 멤버가 속한 팀 중에서 이름이 팀A인 경우를 조회하고, EXISTS로 해당 서브쿼리의 결과가 존재하는지 확인하면 된다.
 
@@ -601,14 +605,16 @@ select m from Member m where m.team = ANY (select t from Team t)
 이 외에도 IN을 사용해서 서브쿼리의 결과 중 하나라도 같은 것이 있으면 True인 식으로 로직을 구성할 수도 있다.  
 EXISTS, IN은 NOT 조건과 함께 사용할 수 있다. (NOT EXISTS, NOT IN)
 
+#### JPA의 서브쿼리 기능의 한계
+
 JPA의 서브쿼리 기능은 WHERE, HAVING 절에서만 사용이 가능하다는 한계가 있다.  
-SELECT 절의 경우 하이버네이트에 한에서만 지원을 하고 있다.
+SELECT 절의 경우 하이버네이트에서만 지원을 하고 있다.
 
 ```sql
 select (select avg(m1.age) From Member m1) as avgAge
 ```
 
-다음과 같은 FROM 절의 서브 쿼리는 현재 불가능하다.
+다음과 같은 FROM 절의 서브 쿼리는 사용할 수 없다.
 
 ```sql
 select mm.age, mm.username from (select m.age, m.username from Member m) as mm
@@ -619,14 +625,13 @@ select mm.age, mm.username from (select m.age, m.username from Member m) as mm
 
 ### 7) JPQL 타입 표현과 기타식
 
-JPQL에서 각각의 데이터 타입을 표시하는 방법은 다음과 같다.
+JPQL에서 각각의 데이터 타입을 표시하는 방법에 대해서 알아보자.
 
-먼저 문자의 경우 single quotation을 이용해서 감싸서 표현하면 된다.  
-ex) ‘HELLO’, ‘She’, ’s’  
-숫자의 경우 10L(Long), 10D(Double), 10F(Float) 처럼 접미사를 이용해서 숫자의 타입을 표현하면 된다.  
-Boolean은 TRUE, FALSE를 사용하면 되고, ENUM은 패키지명을 포함한 형태로 `jpabook.MemberType.Admin` 과 같이 작성해야 한다.
+먼저 문자의 경우 'HELLO', 'She', 's' 처럼 single quotation으로 감싸서 표현하면 된다.  
+숫자의 경우 10L(Long), 10D(Double), 10F(Float) 처럼 접미사를 이용해서 숫자의 타입을 표현한다.  
+Boolean은 TRUE, FALSE를 사용하면 되고, Enum은 패키지명을 포함한 형태로 `jpabook.MemberType.Admin` 과 같이 작성해야 한다.
 
-문자, Boolean, ENUM 타입을 이용해서 조회하는 예시는 다음과 같다.
+문자, Boolean, Enum 타입을 이용해서 조회하는 예시는 다음과 같다.
 
 ```java
 String query = "select m.username, 'HELLO', true from Member m " +
@@ -640,13 +645,13 @@ for (Object[] objects : result) {
 }
 ```
 
-```bash
+```
 objects = member
 objects = HELLO
 objects = true
 ```
 
-만약 JPQL 내부에서 Enum의 전체 프로젝트 경로를 삽입하고 싶지 않다면, 다음과 같이 쿼리를 생성한 후 파라미터를 바인딩하는 방식을 사용할 수 있다.
+만약 JPQL 내부에서 Enum의 전체 프로젝트 경로를 삽입하고 싶지 않다면, 다음과 같이 쿼리를 생성한 후 파라미터를 바인딩하는 식으로 구성할 수 있다.
 
 ```java
 String query = "select m.username, 'HELLO', true from Member m where m.memberType = :type";
@@ -681,13 +686,13 @@ BETWEEN, LIKE, IS NULL 등의 키워드도 마찬가지로 지원한다.
 
 ```sql
 select m.username from Member m where m.username is not null
-select m.username from Member m where m.age between 0 and 10"
+select m.username from Member m where m.age between 0 and 10
 ```
 
 ### 8) 조건식
 
 JPQL은 다양한 조건식을 제공한다.
-먼저 기본적인 CASE 식은 다음과 같이 case - when - else 키워드를 이용해 작성할 수 있다.
+먼저 기본적인 CASE 식은 다음과 같이 case - when - end 키워드를 이용해 작성할 수 있다.
 
 ```sql
 select
@@ -840,7 +845,7 @@ public class MyH2Dialect extends H2Dialect {
 String query = "select function('group_concat', m.username) from Member m";
 ```
 
-> group_concat은 기본 제공되는 함수가 아니기 때문에 "select group_concat(m.username) from Member m"로 작성하려면 IntelliJ 설정이 필요
+group_concat은 기본 제공되는 함수가 아니기 때문에 `select group_concat(m.username) from Member m`로 작성하려면 IntelliJ 설정이 필요하다.
 
 ```bash
 s = 관리자1,관리자2
