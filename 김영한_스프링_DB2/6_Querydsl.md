@@ -62,12 +62,12 @@ public void jpaCriteriaQuery() {
 DSL은 도메인 특화 언어로, 특정 도메인으로 표현력이 제한된 프로그래밍 언어의 종류이다.  
 QueryDSL은 쿼리에 특화된 언어로, 단순하고 간결하다는 것이 특징이다.
 
-QueryDSL은 자바 문법을 통해 type-safe하게 다양한 저장소(MongoDB, MySQL, Redis)의 쿼리를 생성해주는 것을 목표로 했다.
-QueryDSL을 사용하면 엔티티 및 테이블 정보를 읽어서, 코드 생성기가 쿼리용 객체를 생성해준다.
+QueryDSL은 자바 문법을 통해 type-safe하게 다양한 저장소(MongoDB, MySQL, Redis)의 쿼리를 생성해주는 것이 목표였다.  
+QueryDSL을 사용하면 엔티티 및 테이블 정보를 읽어서, 코드 생성기가 쿼리용 객체를 생성해준다.  
 어노테이션 기반으로 동작하기 때문에 Annotation Processing Tool이라고 하는데, JPA에서는 @Entity에 대해서 작동한다.
 
-QueryDSL은 사실상 JPQL을 type-safe하게 작성하는 용도로 많이 사용된다.
-위에서와 동일한 조건으로 쿼리를 작성해야 한다고 해보자.
+QueryDSL은 사실상 JPQL을 type-safe하게 작성하는 용도로 많이 사용된다.  
+위에서와 동일한 조건으로 쿼리를 작성해야 한다고 해보자.  
 먼저 다음과 같이 테이블을 만들고, 엔티티를 정의한다.
 
 ```sql
