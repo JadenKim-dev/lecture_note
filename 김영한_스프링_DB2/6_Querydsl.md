@@ -60,11 +60,11 @@ public void jpaCriteriaQuery() {
 ### 소개2 - 해결
 
 DSL은 도메인 특화 언어로, 특정 도메인으로 표현력이 제한된 프로그래밍 언어의 종류이다.  
-QueryDSL은 쿼리에 특화된 언어로, 단순하고 간결하다는 것이 특징이다.
+QueryDSL은 쿼리에 특화된 언어로, 단순하고 간결하게 쿼리를 작성할 수 있게 지원한다.
 
 QueryDSL은 자바 문법을 통해 type-safe하게 다양한 저장소(MongoDB, MySQL, Redis)의 쿼리를 생성해주는 것이 목표였다.  
 QueryDSL을 사용하면 엔티티 및 테이블 정보를 읽어서, 코드 생성기가 쿼리용 객체를 생성해준다.  
-어노테이션 기반으로 동작하기 때문에 Annotation Processing Tool이라고 하는데, JPA에서는 @Entity에 대해서 작동한다.
+어노테이션 기반으로 동작하기 때문에 Annotation Processing Tool이라고 하는데, JPA에서는 @Entity가 붙은 엔티티 클래스에 작동한다.
 
 QueryDSL은 사실상 JPQL을 type-safe하게 작성하는 용도로 많이 사용된다.  
 위에서와 동일한 조건으로 쿼리를 작성해야 한다고 해보자.  
@@ -118,7 +118,7 @@ List<Member> list = query
     .fetch(m);
 ```
 
-쿼리 기반의 단순하고 직관적인 인터페이스를 사용하고 있다.  
+QueryDSL은 쿼리 기반의 단순하고 직관적인 인터페이스를 사용하고 있다.  
 이를 이용하여 JPQL을 빌드하게 되고, 최종적으로 쿼리로 변환되어 db에 전달된다.  
 APT를 사용하기 위한 설정만 초기에 하고 나면 손쉽게 라이브러리를 사용할 수 있다.
 
@@ -152,7 +152,7 @@ QueryDSL을 사용하기 위해서는 다음의 의존성들과 설정을 추가
 
 ```groovy
 dependencies {
-    //Querydsl 추가
+    // Querydsl 추가
     implementation 'com.querydsl:querydsl-jpa' annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jpa"
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
@@ -161,7 +161,7 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
-//Querydsl 추가, 자동 생성된 Q클래스 gradle clean으로 제거 clean {
+// Querydsl 추가, 자동 생성된 Q클래스 gradle clean으로 제거 clean {
     delete file('src/main/generated')
 }
 ```
