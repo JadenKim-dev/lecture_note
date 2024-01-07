@@ -147,7 +147,7 @@ QueryDSL은 복잡한 쿼리와 동적 쿼리를 편리하게 구성할 수 있�
 
 ### QueryDSL 설정
 
-QueryDSL을 사용하기 위해서는 다음의 의존성들과 설정을 추가해야 한다.
+QueryDSL을 사용하기 위해서는 다음의 의존성들과 설정을 추가해야 한다.  
 스프링 설정이나 관련된 라이브러리들의 설정에 따라 추가하는 의존성이 달라질 수 있다.
 
 ```groovy
@@ -161,7 +161,8 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
-// Querydsl 추가, 자동 생성된 Q클래스 gradle clean으로 제거 clean {
+// Querydsl 추가, 자동 생성된 Q클래스 gradle clean으로 제거 
+clean {
     delete file('src/main/generated')
 }
 ```
@@ -171,10 +172,10 @@ dependencies {
 Preferences - Build, Execution, Deployment - Build - Tools - Gradle
 
 먼저 Gradle을 통해서 빌드하는 경우, Gradle -> Tasks -> build -> clean을 통해 기존 Q파일을 지워준다.  
-그 후에 Gradle -> Tasks -> other -> compileJava를 통해 자바 파일을 컴파일하면 Q파일이 생성된다.
-IntelliJ를 통해 직접 빌드하는 경우 Build -> Build Project 또는 Build -> Rebuild 통해 프로젝트를 빌드해야 한다.
+그 후에 Gradle -> Tasks -> other -> compileJava를 통해 자바 파일을 컴파일하면 Q파일이 생성된다.  
+IntelliJ를 통해 직접 빌드하는 경우 Build -> Build Project 또는 Build -> Rebuild 통해 프로젝트를 빌드해야 한다.  
 또는 main() 함수를 직접 실행해도 Q파일이 생성된다.  
-Q파일을 삭제하고 싶을 때에는 gradle clean 명령어를 실행하여 지울 수 있다.  
+Q파일을 삭제하고 싶을 때에는 gradle clean 명령어를 통해 지울 수 있다.  
 
 > Querydsl은 IntelliJ가 버전업하거나, 스프링이 버전업 하면서 환경 구성 방법이 달라지기도 한다.  
 > 각 버전에 맞는 방법은 직접 찾아서 해야 한다.
