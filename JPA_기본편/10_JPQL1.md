@@ -210,6 +210,8 @@ SELECT m.address FROM Member m   # 임베디드 타입 프로젝션
 SELECT m.username, m.age FROM Member m   # 스칼라 타입 프로젝션
 ```
 
+#### 엔티티 프로젝션
+
 먼저 기본적인 엔티티 프로젝션의 예시는 다음과 같다.  
 엔티티 프로젝션을 통해 추출된 엔티티들은 모두 영속성 컨텍스트에 의해 관리되기 때문에, 변경 감지 등의 영속성 컨텍스트 기능들을 사용할 수 있다.
 
@@ -236,6 +238,8 @@ Hibernate:    # 변경 감지에 의해 정상적으로 update가 이루어짐
         …
 ```
 
+#### 연관 엔티티 프로젝션
+
 연관 엔티티로 프로젝션을 할 때에는 createQuery() 에서 파라미터로 연관 엔티티의 클래스 타입을 넘겨준다.  
 이 경우 연관 관계에 있는 엔티티를 JOIN을 통해 가져온다.
 
@@ -261,6 +265,8 @@ Hibernate:
 `select t from Member m join m.team t`  
 가능한 SQL과 형식이 유사해야 변환된 쿼리를 예측하기 좋고 관리하기도 쉽다.
 
+#### 임베디드 타입 프로젝션
+
 동일한 인터페이스를 통해 임베디드 타입으로 프로젝션해서 가져오는 것도 가능하다.
 
 ```java
@@ -279,6 +285,8 @@ Hibernate:
         ORDERS order0_
 ```
 
+#### 스칼라 타입 프로젝션
+
 마지막으로 스칼라 타입으로 가져오는 경우도 있다.  
 이 때에는 distinct를 함께 사용해서 중복을 제거하는 것도 가능하다.
 
@@ -296,6 +304,8 @@ Hibernate:
         from
             Member member0_
 ```
+
+#### Query 타입으로 조회
 
 다음과 같이 임의의 데이터를 조합하여 함께 조회해야 하는 경우도 있다.  
 `SELECT m.username, m.age FROM Member m`
@@ -326,6 +336,8 @@ List<Object[]> resultList = em.createQuery("select distinct m.age, m.username fr
     .getResultList();
 Object[] result = resultList.get(0);
 ```
+
+#### DTO를 이용한 조회
 
 또는 new 명령어를 이용하여 DTO로 바로 조회하는 것도 가능하다.  
 이 때 DTO 부분에는 패키지 명을 포함한 전체 DTO 클래스명을 입력해야 하고, DTO 클래스에는 순서와 타입이 일치하는 생성자가 정의되어 있어야 한다.
