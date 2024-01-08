@@ -63,7 +63,7 @@ DSL은 도메인 특화 언어로, 특정 도메인으로 표현력이 제한된
 QueryDSL은 쿼리에 특화된 언어로, 단순하고 간결하게 쿼리를 작성할 수 있게 지원한다.
 
 QueryDSL은 자바 문법을 통해 type-safe하게 다양한 저장소(MongoDB, MySQL, Redis)의 쿼리를 생성해주는 것이 목표였다.  
-QueryDSL을 사용하면 엔티티 및 테이블 정보를 읽어서, 코드 생성기가 쿼리용 객체를 생성해준다.  
+QueryDSL을 사용하면 코드 생성기가 엔티티 및 테이블 정보를 읽어서, 쿼리용 Q객체를 생성해준다.  
 어노테이션 기반으로 동작하기 때문에 Annotation Processing Tool이라고 하는데, JPA에서는 @Entity가 붙은 엔티티 클래스에 작동한다.
 
 QueryDSL은 사실상 JPQL을 type-safe하게 작성하는 용도로 많이 사용된다.  
@@ -177,13 +177,13 @@ IntelliJ를 통해 직접 빌드하는 경우 Build -> Build Project 또는 Buil
 또는 main() 함수를 직접 실행해도 Q파일이 생성된다.  
 Q파일을 삭제하고 싶을 때에는 gradle clean 명령어를 통해 지울 수 있다.  
 
-> Querydsl은 IntelliJ가 버전업하거나, 스프링이 버전업 하면서 환경 구성 방법이 달라지기도 한다.  
-> 각 버전에 맞는 방법은 직접 찾아서 해야 한다.
+> IntelliJ가 버전업하거나, 스프링이 버전업 하면서 Querydsl의 환경 구성 방법이 달라지기도 한다.  
+> 각 버전에 맞는 방법을 찾아서 구성해야 한다.
 
 ### 프로젝트 적용
 
 Querydsl을 사용하는 레포지토리를 정의해보자.  
-기본적인 등록, 수정, 단건 조회는 기본 JPA 방식을 사용하고, 동적 쿼리를 적용해야 하는 목록 조회에 Querydsl을 사용한다.
+기본적인 등록, 수정, 단건 조회는 기본의 JPA 방식을 사용하고, 동적 쿼리를 적용해야 하는 목록 조회에 Querydsl을 사용한다.
 
 ```java
 package hello.itemservice.repository.jpa;
