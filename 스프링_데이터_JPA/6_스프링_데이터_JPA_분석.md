@@ -28,18 +28,11 @@ JPA의 데이터 수정(등록, 수정, 삭제)은 트랜잭션 안에서만 가
 
 또한 save 메서드의 구현에 대해서 자세히 살펴볼 필요가 있다.  
 SimpleJpaRepository에서는 새로운 엔티티이면 em.persist를 통해 영속화하고, 기존에 존재하는 엔티티이면 merge하도록 구현되어 있다.  
-이 때 merge를 호출하면 해당하는 데이터를 db에서 조회한 후, 넘겨받은 엔티티 정보로 덮어씌워서 db에 저장하는 식으로 동작한다.  
-이로 인해 조회 쿼리가 한 번 추가 되기 때문에 성능에 악영향을 준다.  
-따라서 데이터 수정이 필요할 경우 save를 호출하는게 아니라, jpa의 변경 감지를 사용하는 것이 적절하다.
-
-### 새로운 엔티티를 구별하는 방법
 
 ```java
 @Repository
 @Transactional(readOnly = true)
 public class SimpleJpaRepository<T, ID> ... {
-    ...
-}
     @Transactional
     public <S extends T> S save(S entity) {
         if (entityInformation.isNew(entity)) {
@@ -49,7 +42,12 @@ public class SimpleJpaRepository<T, ID> ... {
             return em.merge(entity);
         }
     }
+}
 ```
+
+이 때 merge를 호출하면 해당하는 데이터를 db에서 조회한 후, 넘겨받은 엔티티 정보로 덮어씌워서 db에 저장하는 식으로 동작한다.  
+이로 인해 조회 쿼리가 한 번 추가 되기 때문에 성능에 악영향을 준다.  
+따라서 데이터 수정이 필요할 경우 save를 호출하는게 아니라, jpa의 변경 감지를 사용하는 것이 적절하다.
 
 ### 새로운 엔티티를 구별하는 방법
 
