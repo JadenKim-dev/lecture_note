@@ -51,6 +51,18 @@ public class SimpleJpaRepository<T, ID> ... {
 
 ### 새로운 엔티티를 구별하는 방법
 
+스프링 데이터 JPA의 레포지토리에서는 전달 받은 엔티티가 새로운 엔티티인지를 구분해야 한다.  
+이 때 SimpleJpaRepository의 isNew 메서드에서는 식별자 값을 기준으로 새로운 엔티티인지를 판단한다.  
+식별자가 객체 타입(Long)일 경우 null인지를 체크하고, 원시값 타입(long)이면 0인지를 체크한다.
+
+보통 식별자에는 @GeneratedValue를 붙이는데, 이 경우 em.persist를 통해 영속회하는 시점에 식별자 값이 들어간다.  
+따라서 아직 영속화 되지 않은 엔티티의 경우 식별자에 null 또는 0이 들어가고, 이 값을 통해 새로운 엔티티인지를 구분할 수 있다.
+
+다만 식별자에 @GeneratedValue를 붙이지 않고 직접 값을 넣어주는 경우에는 문제가 있다.  
+이 때에는 영속화하기 전부터 식별자에 값이 들어있기 때문에, 이미 존재하는 엔티티로 판별되고 merge가 발생한다.  
+이러한 경우에는 엔티티에서 Persistable을 구현해야 한다.  
+Persistable은 getId, isNew 메서드를 정의하고 있는 인터페이스이다.
+
 ```java
 package org.springframework.data.domain;
 
@@ -60,19 +72,12 @@ public interface Persistable<ID> {
 }
 ```
 
+isNew 메서드에 새로운 엔티티인지를 판단하는 로직을 구현하면 된다.  
+이 때 @CreatedDate를 붙여서 생성일을 필드로 가지고 있으면 영속화 시점에 생성일이 삽입된다.  
+실무에서는 대부분의 엔티티에 생성일 필드가 포함되기 때문에, 보통 생성일을 기준으로 새로운 엔티티인지를 판단한다.
+
 ```java
 package study.datajpa.entity;
-
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.domain.Persistable;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.Id;
-import java.time.LocalDateTime;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
