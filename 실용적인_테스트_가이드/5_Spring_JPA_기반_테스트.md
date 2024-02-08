@@ -218,7 +218,7 @@ public class ProductController {
 이제 앱을 실행하기 위한 설정을 진행하면 된다.  
 local, test 프로파일을 각각 정의한다.  
 
-application 설정 시 ddl-auto에 데이터를 초기회하는지 여부를 세팅하는데, 각 프로파일 별로 신경 써서 작성해야 한다.  
+application.yml 설정 시 ddl-auto에 데이터를 초기회하는지 여부를 세팅하는데, 각 프로파일 별로 신경 써서 작성해야 한다.  
 defer-datasource-initialization 설정을 통해서는 data.sql이 실행되는 타이밍을 설정할 수 있다.  
 기본값인 false는 Hibernate 세팅 전에 실행하는 것이고, true로 지정하면 ddl을 통한 테이블 생성이 끝난 후에 data.sql을 실행한다.  
 테스트 환경에서는 직접 given에서 필요한 데이터를 삽입할 것이기 때문에 `sql: init: mode: never`로 설정했다.
@@ -275,3 +275,20 @@ spring:
     init:
       mode: never
 ```
+
+기본 데이터를 삽입하기 위한 data.sql은 resources 하위에 작성한다.
+
+```sql
+insert into product(product_number, type, selling_status, name, price)
+values ('001', 'HANDMADE', 'SELLING', '아메리카노', 4000),
+       ('002', 'HANDMADE', 'HOLD', '카페라떼', 4500),
+       ('003', 'BAKERY', 'STOP_SELLING', '크루아상', 3500);
+```
+
+
+
+
+
+
+
+
