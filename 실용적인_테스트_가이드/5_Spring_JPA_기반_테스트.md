@@ -293,6 +293,64 @@ values ('001', 'HANDMADE', 'SELLING', '아메리카노', 4000),
 특히 where 조건이 늘어나는 등 메서드가 복잡해지면 의도한 대로 쿼리가 발생하지 않을 수 있다.  
 또한 QueryDsl, MyBatis 등 다른 기술을 사용하는 것으로 변경될 수도 있기 때문에, 이런 상황에서도 코드의 정상 동작을 보장하기 위해서는 테스트 코드가 필요하다.
 
+레포지토리에 대한 테스트에서는 실제로 스프링 앱을 띄워서 의존성 주입을 마쳐야 한다.  
+이를 위해 @SpringBootTest, 또는 데이터 JPA 사용을 위한 빈들을 등록해주는 @DataJpaTest를 테스트 클래스에 붙여야 한다.  
+따라서 기본적으로는 통합 테스트이지만, 데이터 저장소를 다루는 일부의 기능만을 확인하기 때문에 통합 테스트로써의 성격도 가진다.
 
+전체 테스트 코드는 다음과 같다.  
+given에서는 세 개의 Product 객체를 생성하고, 이를 레포지토리를 통해 저장한다.  
+when에서 레포지토리의 조회 메서드를 실행하고, then에서 적절히 아이템이 조회되었는지를 테스트한다.
 
+```java
+package sample.cafekiosk.spring.domain.product;
+
+@ActiveProfiles("test")
+//@SpringBootTest
+@DataJpaTest
+class ProductRepositoryTest {
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @DisplayName("원하는 판매상태를 가진 상품들을 조회한다.")
+    @Test
+    void findAllBySellingStatusIn() {
+        // given
+        Product product1 = Product.builder()
+                .productNumber("001")
+                .type(HANDMADE)
+                .sellingStatus(SELLING)
+                .name("아메리카노")
+                .price(4000)
+                .build();
+        Product product2 = Product.builder()
+                .productNumber("002")
+                .type(HANDMADE)
+                .sellingStatus(HOLD)
+                .name("카페라떼")
+                .price(4500)
+                .build();
+        Product product3 = Product.builder()
+                .productNumber("003")
+                .type(HANDMADE)
+                .sellingStatus(STOP_SELLING)
+                .name("팥빙수")
+                .price(7000)
+                .build();
+        productRepository.saveAll(List.of(product1, product2, product3));
+
+        // when
+        List<Product> products = productRepository.findAllBySellingStatusIn(List.of(SELLING, HOLD));
+
+        // then
+        assertThat(products).hasSize(2)
+                .extracting("productNumber", "name", "sellingStatus")
+                .containsExactlyInAnyOrder(
+                        tuple("001", "아메리카노", SELLING),
+                        tuple("002", "카페라떼", HOLD)
+                );
+    }
+
+}
+```
 
