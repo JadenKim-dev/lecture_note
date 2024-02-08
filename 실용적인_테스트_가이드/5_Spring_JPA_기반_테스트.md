@@ -54,3 +54,87 @@ JPA를 사용하면 반복적인 CRUD 쿼리 작업의 상당 부분이 자동�
 
 수업에서는 Order와 Product를 다대다 관계로 구성할 것이다.  
 이 때 중간 테이블로 OrderProduct를 사용하여, 일대다 + 다대일 관계로 풀어낼 것이다.
+
+### Persistence Layer 테스트 (1)
+
+이전에 정의했던 요구 사항을 보다 확장해서 정의해보자.  
+고객은 주문이 가능한 상품 리스트를 조회할 수 있어야 한다.  
+이 때 각 음료들은 판매 중, 판매 보류, 판매 중지 상태를 가져야 한다.  
+고객들에게는 판매 중이거나 판매 보류 중인 음료 목록을 보여줄 것이다.  
+반환 받는 데이터에는 다음의 정보가 포함되어야 한다.  
+`id, 상품 번호, 상품 타입, 판매 상태, 상품 이름, 가격`
+
+먼저 상품 타입과 판매 상태에 대한 enum을 각각 정의한다.
+
+```java
+package sample.cafekiosk.spring.domain.product;
+
+@Getter
+@RequiredArgsConstructor
+public enum ProductType {
+    HANDMADE("제조 음료"),
+    BOTTLE("병 음료"),
+    BAKERY("베이커리");
+
+    private final String text;
+}
+```
+
+```java
+package sample.cafekiosk.spring.domain.product;
+
+@Getter
+@RequiredArgsConstructor
+public enum ProductSellingStatus {
+    SELLING("판매중"),
+    HOLD("판매보류"),
+    STOP_SELLING("판매중지");
+
+    private final String text;
+
+    public static List<ProductSellingStatus> forDisplay() {
+        return List.of(SELLING, HOLD);
+    }
+}
+```
+
+또한 생성일, 수정일 과 같은 공통 정보를 담고 있는 추상 클래스를 정의하고, 상속해서 사용하자.  
+
+```java
+package sample.cafekiosk.spring.domain;
+
+@Getter
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public abstract class BaseEntity {
+    @CreatedDate
+    private LocalDateTime createdDateTime;
+
+    @LastModifiedDate
+    private LocalDateTime modifiedDateTime;
+}
+```
+
+> 자동으로 생성일, 수정일 정보를 받아오게 하기 위해 스프링 어플리케이션에 ‎@EnableJpaAuditing을 붙여야 한다.
+
+이제 데이터 CRUD를 수행할 레포지토리를 정의한다.  
+예제에서는 스프링 데이터 JPA를 사용한다.  
+요구사항을 만족하기 위해서 상품 타입에 따라 상품 목록을 조회하는 메서드를 정의한다.  
+스프링 데이터 JPA의 쿼리 메서드 기능을 이용하여 정의한다.
+
+```java
+package sample.cafekiosk.spring.domain.product;
+
+@Repository
+public interface ProductRepository extends JpaRepository<Product, Long> {
+    /**
+     * select *
+     * from product
+     * where selling_status in ('SELLING', 'HOLD');
+     */
+    List<Product> findAllBySellingStatusIn(List<ProductSellingStatus> sellingStatuses);
+}
+```
+
+
+
