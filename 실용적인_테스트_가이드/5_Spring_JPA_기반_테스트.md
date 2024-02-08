@@ -64,7 +64,8 @@ JPA를 사용하면 반복적인 CRUD 쿼리 작업의 상당 부분이 자동�
 반환 받는 데이터에는 다음의 정보가 포함되어야 한다.  
 `id, 상품 번호, 상품 타입, 판매 상태, 상품 이름, 가격`
 
-먼저 상품 타입과 판매 상태에 대한 enum을 각각 정의한다.
+먼저 상품 타입과 판매 상태에 대한 enum을 각각 정의한다.  
+이 때 판매 상태 enum 내에는 사용자에게 보여줄 판매 상태 목록을 배열로 반환하는 메서드를 정의한다.
 
 ```java
 package sample.cafekiosk.spring.domain.product;
@@ -136,5 +137,141 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 }
 ```
 
+이제 서비스 계층을 정의할 차례이다.  
+서비스 단에서는 적절하게 상품 목록을 불러와서, DTO로 적절히 변환하여 반환하도록 구현할 것이다.  
+이를 위해 먼저 DTO 객체를 정의한다.
 
+```java
+package sample.cafekiosk.spring.api.service.product.response;
 
+@Getter
+public class ProductResponse {
+    private Long id;
+    private String productNumber;
+    private ProductType type;
+    private ProductSellingStatus sellingStatus;
+    private String name;
+    private int price;
+
+    @Builder
+    private ProductResponse(Long id, String productNumber, ProductType type, ProductSellingStatus sellingStatus, String name, int price) {
+        this.id = id;
+        this.productNumber = productNumber;
+        this.type = type;
+        this.sellingStatus = sellingStatus;
+        this.name = name;
+        this.price = price;
+    }
+
+    public static ProductResponse of(Product product) {
+        return ProductResponse.builder()
+                .id(product.getId())
+                .productNumber(product.getProductNumber())
+                .type(product.getType())
+                .sellingStatus(product.getSellingStatus())
+                .name(product.getName())
+                .price(product.getPrice())
+                .build();
+    }
+}
+```
+
+이제 다음과 같이 서비스 계층을 정의할 수 있다.  
+레포지토리 계층에 대한 요청을 통해 데이터를 받아오고, 적절히 dto로 병횡하여 반환한다.
+
+```java
+package sample.cafekiosk.spring.api.service.product;
+
+@RequiredArgsConstructor
+@Service
+public class ProductService {
+
+    private final ProductRepository productRepository;
+
+    public List<ProductResponse> getSellingProducts() {
+        List<Product> products = productRepository.findAllBySellingStatusIn(ProductSellingStatus.forDisplay());
+
+        return products.stream()
+                .map(ProductResponse::of)
+                .collect(Collectors.toList());
+    }
+}
+```
+
+마지막으로 컨트롤러 객체를 다음과 같이 정의하면 요구사항을 반영한 구현이 1차적으로 끝나게 된다.
+
+```java
+package sample.cafekiosk.spring.api.controller.product;
+
+@RequiredArgsConstructor
+@RestController
+public class ProductController {
+    private final ProductService productService;
+
+    @GetMapping("/api/v1/products/selling")
+    public List<ProductResponse> getSellingProducts() {
+        return productService.getSellingProducts();
+    }
+}
+```
+
+이제 앱을 실행하기 위한 설정을 진행하면 된다.  
+local, test 프로파일을 각각 정의한다.  
+
+application 설정 시 ddl-auto에 데이터를 초기회하는지 여부를 세팅하는데, 각 프로파일 별로 신경 써서 작성해야 한다.  
+defer-datasource-initialization 설정을 통해서는 data.sql이 실행되는 타이밍을 설정할 수 있다.  
+기본값인 false는 Hibernate 세팅 전에 실행하는 것이고, true로 지정하면 ddl을 통한 테이블 생성이 끝난 후에 data.sql을 실행한다.  
+테스트 환경에서는 직접 given에서 필요한 데이터를 삽입할 것이기 때문에 `sql: init: mode: never`로 설정했다.
+
+```yaml
+spring:
+  profiles:
+    default: local
+
+  datasource:
+    url: jdbc:h2:mem:~/cafeKioskApplication
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    defer-datasource-initialization: true # (2.5~) Hibernate 초기화 이후 data.sql 실행
+
+  h2:
+    console:
+      enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: never
+```
