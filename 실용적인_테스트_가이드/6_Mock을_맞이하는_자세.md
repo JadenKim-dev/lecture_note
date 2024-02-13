@@ -21,6 +21,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
 이제 주문 통계를 계산하고 메일을 전송하는 OrderStatisticsService를 구현한다.
 
+> 메일 전송 처럼 외부 API를 사용하는 로직의 경우, 트랜잭션을 걸지 않는 것이 좋다.  
+> 트랜잭션을 걸었는데 외부 API 응답이 늦어지면, 늦어진 시간만큼 오래 커넥션을 점유하고 있게 된다.
+
 ```java
 package sample.cafekiosk.spring.api.service.order;
 
@@ -147,7 +150,99 @@ public class MailService {
 
         return false;
     }
-
 }
 ```
+
+이제 OrderStatisticsService에 대한 테스트 코드를 작성해야 하는데, 문제가 있다.  
+현재는 sendOrderStatisticsMail을 호출할 때마다 메일을 실제로 전송하게 된다.  
+테스트 실행 시 매번 메일을 전송하는 것은 시간과 비용에 있어 낭비이다.  
+이를 Mocking 해서 처리해보자.  
+
+```java
+package sample.cafekiosk.spring.api.service.order;
+
+@SpringBootTest
+class OrderStatisticsServiceTest {
+    @Autowired
+    private OrderStatisticsService orderStatisticsService;
+
+    @Autowired
+    private OrderProductRepository orderProductRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private MailSendHistoryRepository mailSendHistoryRepository;
+
+    @MockBean
+    private MailSendClient mailSendClient;
+
+    @AfterEach
+    void tearDown() {
+        orderProductRepository.deleteAllInBatch();
+        orderRepository.deleteAllInBatch();
+        productRepository.deleteAllInBatch();
+        mailSendHistoryRepository.deleteAllInBatch();
+    }
+
+    @DisplayName("결제완료 주문들을 조회하여 매출 통계 메일을 전송한다.")
+    @Test
+    void sendOrderStatisticsMail() {
+        // given
+        LocalDateTime now = LocalDateTime.of(2023, 3, 5, 0, 0);
+
+        Product product1 = createProduct(HANDMADE, "001", 1000);
+        Product product2 = createProduct(HANDMADE, "002", 2000);
+        Product product3 = createProduct(HANDMADE, "003", 3000);
+        List<Product> products = List.of(product1, product2, product3);
+        productRepository.saveAll(products);
+
+        Order order1 = createPaymentCompletedOrder(LocalDateTime.of(2023, 3, 4, 23, 59, 59), products);
+        Order order2 = createPaymentCompletedOrder(now, products);
+        Order order3 = createPaymentCompletedOrder(LocalDateTime.of(2023, 3, 5, 23, 59, 59), products);
+        Order order4 = createPaymentCompletedOrder(LocalDateTime.of(2023, 3, 6, 0, 0), products);
+
+        // stubbing
+        when(mailSendClient.sendEmail(any(String.class), any(String.class), any(String.class), any(String.class)))
+            .thenReturn(true);
+
+        // when
+        boolean result = orderStatisticsService.sendOrderStatisticsMail(LocalDate.of(2023, 3, 5), "test@test.com");
+
+        // then
+        assertThat(result).isTrue();
+
+        List<MailSendHistory> histories = mailSendHistoryRepository.findAll();
+        assertThat(histories).hasSize(1)
+            .extracting("content")
+            .contains("총 매출 합계는 12000원입니다.");
+    }
+
+    private Product createProduct(ProductType type, String productNumber, int price) {
+        return Product.builder()
+            .type(type)
+            .productNumber(productNumber)
+            .price(price)
+            .sellingStatus(SELLING)
+            .name("메뉴 이름")
+            .build();
+    }
+
+    private Order createPaymentCompletedOrder(LocalDateTime now, List<Product> products) {
+        Order order = Order.builder()
+            .products(products)
+            .orderStatus(OrderStatus.PAYMENT_COMPLETED)
+            .registeredDateTime(now)
+            .build();
+        return orderRepository.save(order);
+    }
+}
+```
+
+MailSendClient를 MockBean으로 등록하고, Mockito.when을 이용하여 행위에 대한 stubbing을 적용했다.  
+이를 통해 메일 전송이 발생하지 않은 채로 테스트를 실행할 수 있다.
 
