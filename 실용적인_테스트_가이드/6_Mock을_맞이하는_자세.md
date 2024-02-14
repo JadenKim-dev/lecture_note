@@ -246,3 +246,76 @@ class OrderStatisticsServiceTest {
 MailSendClient를 MockBean으로 등록하고, Mockito.when을 이용하여 행위에 대한 stubbing을 적용했다.  
 이를 통해 메일 전송이 발생하지 않은 채로 테스트를 실행할 수 있다.
 
+### Test Double
+
+이번에는 가짜 객체와 관련된 테스트 용어들을 알아보자.  
+Test Double에는 총 5가지의 종류가 있다.  
+먼저 Dummy는 단순히 모방하기만 한, 아무것도 하지 않는 깡통 객체이다.
+
+Fake는 단순한 형태로 동작은 하나, 프로덕션에서 쓰기에는 부족한 객체이다.
+예를 들어 메모리에 데이터를 저장하는 Fake Repository를 만들어서 테스트에 사용할 수 있다.
+
+Stub은 미리 설정해둔 일부의 요청에만 미리 준비한 결과를 응답하는 객체이다.  
+그 외의 요청을 하면 응답을 받을 수 없다.
+
+Spy는 객체의 호출된 내용을 기록하여, 이후 보여줄 수 있는 객체이다.  
+일부는 실제 객체차럼 동작시키고, 일부는 Stubbing 하는 것이 가능하다.
+
+Mock은 행위에 대한 기대를 명세하고, 그에 따라 동작하도록 만들어진 객체이다.
+
+여기서 Stub과 Mock을 잘 구분해야 한다.  
+Stub은 상태 검증을 하는 방식으로, 특정 요청을 했을 때 어떤 식으로 내부 상태가 변화하는지를 검증한다.  
+이와 달리 Mock은 행위 검증을 하는 방식으로, 특정 메서드가 어떤 식으로 호출되었는지를 검증한다.
+
+### @Mock, @Spy, @InjectMocks
+
+이번에는 순수하게 Mockito를 이용해서 테스트를 작성해보자.
+기존에는 @MockBean으로 스프링 컨테이너에 가짜 빈을 등록하는 식으로 Mocking을 했다.  
+하지만 스프링 컨테이너를 사용하지 않고 단위 테스트를 구성하는 경우에는 직접 Mockito를 이용해서 테스트를 작성해야 한다.  
+
+MailClient에 메일 전송을 요청하는 MailService에 대한 테스트 코드를 작성해보자.  
+@SpringBootTest를 달지 않고, 스프링 컨테이너 없이 테스트를 진행할 것이다.
+
+```java
+package sample.cafekiosk.spring.api.service.mail;
+
+@ExtendWith(MockitoExtension.class)
+class MailServiceTest {
+
+    @Spy
+    private MailSendClient mailSendClient;
+
+    @Mock
+    private MailSendHistoryRepository mailSendHistoryRepository;
+
+    @InjectMocks
+    private MailService mailService;
+
+    @DisplayName("메일 전송 테스트")
+    @Test
+    void sendMail() {
+        // given
+//        when(mailSendClient.sendEmail(anyString(), anyString(), anyString(), anyString()))
+//            .thenReturn(true);
+        doReturn(true)
+            .when(mailSendClient)
+            .sendEmail(anyString(), anyString(), anyString(), anyString());
+
+        // when
+        boolean result = mailService.sendMail("", "", "", "");
+
+        // then
+        assertThat(result).isTrue();
+        verify(mailSendHistoryRepository, times(1)).save(any(MailSendHistory.class));
+    }
+
+}
+```
+
+
+
+
+
+
+
+
