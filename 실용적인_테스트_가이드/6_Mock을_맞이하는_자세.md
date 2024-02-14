@@ -321,4 +321,70 @@ class MailServiceTest {
 @Spy를 붙이면 `doReturn(...).when().메서드()` 형태로 모킹한다.  
 이 때 모킹하지 않은 메서드는 실제 객체의 메서드가 동작하게 된다.
 
+### BDDMockito
+
+BDDMockito는 given, when, then을 통해 행위 중심으로 테스트를 작성할 수 있도록 지원하는 라이브러리이다.  
+기존에는 given 절에 Mockito.when으로 객체를 모킹하는 식으로 작성했다.
+
+```java
+when(mailSendClient.sendEmail(anyString(), anyString(), anyString(), anyString()))
+    .thenReturn(true);
+```
+
+BDDMockito를 사용하면 다음과 같이 보다 행위 중심적인 코드로 객체를 모킹할 수 있다.
+
+```java
+package sample.cafekiosk.spring.api.service.mail;
+
+@ExtendWith(MockitoExtension.class)
+class MailServiceTest {
+
+    @Mock
+    private MailSendClient mailSendClient;
+
+    @Mock
+    private MailSendHistoryRepository mailSendHistoryRepository;
+
+    @InjectMocks
+    private MailService mailService;
+
+    @DisplayName("메일 전송 테스트")
+    @Test
+    void sendMail() {
+        // given
+//        Mockito.when(mailSendClient.sendEmail(anyString(), anyString(), anyString(), anyString()))
+//            .thenReturn(true);
+        given(mailSendClient.sendEmail(anyString(), anyString(), anyString(), anyString()))
+            .willReturn(true);
+
+        // when
+        boolean result = mailService.sendMail("", "", "", "");
+
+        // then
+        assertThat(result).isTrue();
+        verify(mailSendHistoryRepository, times(1)).save(any(MailSendHistory.class));
+    }
+
+}
+```
+
+### Classicist vs Mockist
+
+Mockist는 가능한 대부분의 로직을 모킹 처리하자는 입장이다.  
+어차피 각각 단위 테스트로 검증을 수행할 것이기 때문에, 불필요하게 실제 객체를 사용해서 테스트 할 필요가 없다는 것이다.  
+Mockist의 입장에서는 앞서 수행한 Business Layer 단의 테스트에서도 레포지토리를 모킹하여 테스트 하는 방법을 택했을 것이다.
+
+이와 달리 Classicist는 모킹을 최소화하고, 가능한 실제 객체를 많은 부분에서 사용하자는 입장이다.  
+아무리 각 모듈이 단위 테스트로 검증되었다고 하더라도, 이들이 협업했을 때에도 의도한대로 동작할 것임을 보장할 수 없다고 본다.  
+정교하게 Stubbing 한다고 하더라도, 가짜 객체가 실제 프로덕션 코드와 동일하게 동작할 것이라고 단언하기 어렵다는 것이다.  
+
+지금까지 우리는 Classicist의 관점처럼 실제 객체를 최대한 사용하여 테스트를 진행했다.  
+서비스 단에 대한 테스트 코드 작성 시, 실제 레포지토리 객체를 사용하여 통합 테스트로 진행했다.  
+예제의 메일 전송 로직과 같이 외부 시스템과 상호작용 하는 부분만 모킹해서 처리하면 된다.
+
+
+
+
+
+
 
