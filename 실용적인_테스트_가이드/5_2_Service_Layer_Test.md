@@ -1,21 +1,20 @@
 ### Business Layer 테스트 1
 
-Persistence Layer는 데이터 접근을 맡는 계층이다.  
-해당 계층에는 비즈니스 로직이 개입되지 않아야 하고, 순수하게 데이터 CRUD에만 집중해야 한다.  
-테스트도 이에 맞게 데이터 접근 자체에 대해서만 집중해야 한다.
+Persistence Layer는 데이터 접근을 맡는 계층으로, 비즈니스 로직의 개입 없이 순수하게 데이터 CRUD에 집중해야 한다.  
+레포지토리에 대한 테스트도 이에 맞게 데이터 접근 자체에만 집중해서 작성했다.
 
 Business Layer는 비즈니스 로직을 구현하는 계층이다.  
-Persistence Layer를 통해 데이터를 읽고 쓰면서 비즈니스 로직을 전개해나가게 된다.  
-또한 비즈니스 로직 단위로 작업의 원자성을 보장해야 하기 때문에, Business Layer 단에서 트랜잭션으로 작업을 묶어야 한다.
+Persistence Layer를 통해 데이터를 읽고 쓰면서 비즈니스 로직을 전개한다.  
+또한 비즈니스 로직 단위로 작업의 원자성을 보장하기 위해 Business Layer에서 트랜잭션으로 작업을 묶게 된다.
 
-Business Layer에 대한 테스트를 작성할 때에는 Persistence Layer를 함께 묶어서 작성할 것이다.  
-이를 통해 통합 테스트로 구성하여, 전체 객체가 의도한 대로 협력하여 동작하는지를 검증할 것이다.
+Business Layer의 테스트는 Persistence Layer와 함께 묶어서 통합 테스트로 작성할 것이다.  
+이를 통해 전체 객체가 의도한 대로 협력하여 동작하는지를 검증할 것이다.
 
 <img src="./images/5_Spring_test1.png" width="500">
 
-먼저 새로운 요구사항을 추가해보자.  
+새로운 요구사항을 추가해보자.  
 이번엔 상품 번호 목록을 받아서 주문을 생성하는 기능을 구현해야 한다.  
-주문은 주문 상태, 주문 등록 시간 정보를 가져야 하고, 주문의 총 금액 시간을 계산 가능해야 한다.
+주문은 `주문 상태`, `주문 등록 시간` 정보를 가지고, 주문의 총 금액을 계산할 수 있어야 한다.
 
 먼저 각각의 주문 상태를 나타내는 enum을 정의한다.
 
@@ -39,7 +38,7 @@ public enum OrderStatus {
 ```
 
 이제 Order와 Product 간 다대다 관계를 구성하기 위해, 중간 테이블 엔티티를 정의한다.  
-중간 엔티티는 내부에 Order와 Product에 대한 참조를 가지고, @ManyToOne 설정이 되어있어야 한다.
+중간 엔티티는 Order, Product와 각각 @ManyToOne으로 매핑된다.
 
 ```java
 package sample.cafekiosk.spring.domain.orderproduct;
@@ -69,7 +68,7 @@ public class OrderProduct extends BaseEntity {
 
 이제 Order 엔티티를 정의한다.  
 Order에서는 자신에게 담긴 상품의 목록에 접근해야 하는 경우가 많다.  
-따라서 Order와 OrderProduct가 양방향 관계를 가지도록 하기 위해, 내부에 OrderProduct 목록을 가지게 한다.
+따라서 Order와 OrderProduct가 양방향 관계를 가지도록 설계하여, OrderProduct와 @OneToMany로 매핑한다.
 
 ```java
 package sample.cafekiosk.spring.domain.order;
@@ -98,7 +97,7 @@ public class Order extends BaseEntity {
 ```
 
 이제 주문에 대한 요청을 받는 OrderController를 구현한다.  
-주문 생성 요청에 대한 request body 클래스를 정의하고, 컨트롤러에서는 이를 받아서 Service 계층에 주문 생성 요청을 하도록 구현한다.
+주문 생성 요청에 대한 request body 클래스를 정의하고, 컨트롤러에서 이를 받아서 Service 계층에 주문 생성을 요청하도록 구현한다.
 
 ```java
 package sample.cafekiosk.spring.api.controller.order.request;
@@ -137,8 +136,8 @@ public class OrderController {
 이제 본격적으로 TDD 방식을 통해 서비스 계층을 구현해보자.  
 먼저 다음과 같이 createOrder에 대한 테스트 코드를 작성한다.  
 given에서는 주문에 넣을 각각의 Product 객체를 생성하고 레포지토리에 저장해야 한다.  
-이 때 각 Product를 builder로 생성하기에는 지나치게 코드가 길어지므로, 도우미 메서드인 createProduct를 정의해서 사용한다.  
-Product들을 저장한 후에는, 해당 상품들의 상품번호를 이용하여 OrderCreateRequest 객체를 생성한다.  
+이 때 각 Product를 builder로 생성하기에는 지나치게 코드가 길어지므로, helper 메서드인 createProduct를 정의해서 사용한다.  
+Product를 저장한 후에는 상품들의 상품번호를 이용하여 OrderCreateRequest 객체를 생성한다.  
 when에서는 주문 생성 메서드를 실행하고, then에서는 주문이 정상적으로 생성되었는지를 검증한다.
 
 ```java
