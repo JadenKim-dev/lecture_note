@@ -65,7 +65,7 @@ JPA를 사용하면 반복적인 CRUD 쿼리 작업의 상당 부분을 자동�
 `id, 상품 번호, 상품 타입, 판매 상태, 상품 이름, 가격`
 
 먼저 상품 타입과 판매 상태에 대한 enum을 각각 정의한다.  
-이 때 판매 상태 enum 내에는 사용자에게 보여줄 판매 상태 목록을 배열로 반환하는 메서드를 정의한다.
+판매 상태 enum 에는 사용자에게 보여줄 판매 상태의 목록(판매 중, 판매 보류)을 반환하는 forDisplay()를 정의한다.
 
 ```java
 package sample.cafekiosk.spring.domain.product;
@@ -99,7 +99,7 @@ public enum ProductSellingStatus {
 }
 ```
 
-또한 생성일, 수정일 과 같은 공통 정보를 담고 있는 추상 클래스를 정의하고, 상속해서 사용하자.
+다음으로 생성일, 수정일 과 같은 공통 정보를 담고 있는 추상 클래스를 정의하고, 각 엔티티에서 상속해서 사용하도록 한다.
 
 ```java
 package sample.cafekiosk.spring.domain;
@@ -116,12 +116,10 @@ public abstract class BaseEntity {
 }
 ```
 
-> 자동으로 생성일, 수정일 정보를 받아오게 하기 위해 스프링 어플리케이션에 @EnableJpaAuditing을 붙여야 한다.
+> 자동으로 생성일, 수정일 정보를 받아오게 하기 위해 스프링 어플리케이션에 @EnableJpaAuditing을 적용해야 한다.
 
-이제 데이터 CRUD를 수행할 레포지토리를 정의한다.  
-예제에서는 스프링 데이터 JPA를 사용한다.  
-요구사항을 만족하기 위해서 판매 상태에 따라 상품 목록을 조회하는 메서드를 정의한다.  
-스프링 데이터 JPA의 쿼리 메서드 기능을 이용하여 정의한다.
+이제 데이터 CRUD를 수행하기 위해 스프링 데이터 JPA를 이용하여 레포지토리를 정의한다.  
+쿼리 메서드 기능을 이용하여 판매 상태에 따라 상품 목록을 조회하는 메서드를 정의한다.
 
 ```java
 package sample.cafekiosk.spring.domain.product;
@@ -137,9 +135,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 }
 ```
 
-이제 서비스 계층을 정의할 차례이다.  
-서비스 단에서는 적절하게 상품 목록을 불러와서, DTO로 적절히 변환하여 반환하도록 구현할 것이다.  
-이를 위해 먼저 DTO 객체를 정의한다.
+서비스 단에서는 상품 엔티티 정보에서 필요한 정보만 추출하여 DTO로 반환할 것이다.  
+이를 위해 먼저 DTO 객체인 ProductResponse를 정의한다.  
+Product 엔티티로부터 편리하게 변환할 수 있도록 생성 메서드 of()를 정의한다.
 
 ```java
 package sample.cafekiosk.spring.api.service.product.response;
@@ -177,7 +175,7 @@ public class ProductResponse {
 ```
 
 이제 다음과 같이 서비스 계층을 정의할 수 있다.  
-레포지토리 계층에 대한 요청을 통해 데이터를 받아오고, 적절히 dto로 변환하여 반환한다.
+레포지토리 계층을 통해 데이터를 조회하고, 이를 dto로 변환하여 반환한다.
 
 ```java
 package sample.cafekiosk.spring.api.service.product;
@@ -198,7 +196,7 @@ public class ProductService {
 }
 ```
 
-마지막으로 컨트롤러 객체를 다음과 같이 정의하면 요구사항을 반영한 구현이 1차적으로 끝나게 된다.
+마지막으로 컨트롤러 객체를 다음과 같이 정의하면 요구사항 구현이 1차적으로 완료된다.
 
 ```java
 package sample.cafekiosk.spring.api.controller.product;
@@ -215,13 +213,13 @@ public class ProductController {
 }
 ```
 
-이제 앱을 실행하기 위한 설정을 진행하면 된다.  
-local, test 프로파일을 각각 정의한다.
+이제 application.yml에 앱을 실행하기 위한 설정을 진행한다.  
+이 때 local, test 프로파일을 분리하여, 각 환경에서의 설정을 별도로 정의한다.  
+ddl-auto에는 앱 실행 시 데이터를 초기화 전략을 설정하는데, 각 프로파일 별로 신경 써서 작성해야 한다.  
 
-application.yml 설정 시 ddl-auto에 데이터를 초기회하는지 여부를 세팅하는데, 각 프로파일 별로 신경 써서 작성해야 한다.  
-defer-datasource-initialization 설정을 통해서는 data.sql이 실행되는 타이밍을 설정할 수 있다.  
-기본값인 false는 Hibernate 세팅 전에 실행하는 것이고, true로 지정하면 ddl을 통한 테이블 생성이 끝난 후에 data.sql을 실행한다.  
-테스트 환경에서는 직접 given에서 필요한 데이터를 삽입할 것이기 때문에 `sql: init: mode: never`로 설정했다.
+defer-datasource-initialization에는 data.sql이 실행되는 타이밍을 설정할 수 있다.  
+기본값인 false로 지정하면 Hibernate 세팅 전에 data.sql이 실행되고, true로 지정하면 ddl을 통한 테이블 생성이 끝난 후에 실행한다.  
+테스트 환경에서는 직접 given에서 필요한 데이터를 삽입할 것이기 때문에 `sql.init.mode: never`로 설정했다.
 
 ```yaml
 spring:
@@ -285,11 +283,10 @@ values ('001', 'HANDMADE', 'SELLING', '아메리카노', 4000),
 
 ### Persistence Layer 테스트
 
-이제 영속성 계층에 대한 테스트를 작성해보자.  
-다만 스프링 데이터 JPA 레포지토리의 쿼리 메서드를 이용하여 간단하게 조회 메서드를 구현한 상태에서, 굳이 테스트가 필요한지 의문일 수 있다.  
+스프링 데이터 JPA를 이용하여 간단하게 영속성 계층을 구성한 경우에도 레포지토리 단에 대한 테스트가 필요한지 의문일 수 있다.  
 하지만 레포지토리 단의 메서드도 우리가 작성한 코드의 일부이기 때문에 검증이 필요하다.  
-특히 where 조건이 늘어나는 등 메서드가 복잡해지면 의도한 대로 쿼리가 발생하지 않을 수 있다.  
-또한 QueryDsl, MyBatis 등 다른 기술을 사용하는 것으로 변경될 수도 있기 때문에, 이런 상황에서도 코드의 정상 동작을 보장하기 위해서는 테스트 코드가 필요하다.
+특히 where 조건이 늘어나는 등 메서드가 복잡해지면 의도한 대로 쿼리가 발생하지 않을 우려가 있다.  
+또한 레포지토리 단에서 QueryDsl 등의 다른 기술을 사용하는 것으로 변경될 수 있기 때문에, 코드의 정상 동작을 보장하기 위해서는 테스트 코드가 필요하다.
 
 레포지토리에 대한 테스트에서는 실제로 스프링 앱을 띄워서 의존성 주입을 마쳐야 한다.  
 이를 위해 @SpringBootTest, 또는 데이터 JPA 사용을 위한 빈들을 등록해주는 @DataJpaTest를 테스트 클래스에 붙여야 한다.  
