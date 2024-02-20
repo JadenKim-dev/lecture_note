@@ -135,10 +135,12 @@ public class OrderController {
 
 이제 본격적으로 TDD 방식을 통해 서비스 계층을 구현해보자.  
 먼저 다음과 같이 createOrder에 대한 테스트 코드를 작성한다.  
-given에서는 주문에 넣을 각각의 Product 객체를 생성하고 레포지토리에 저장해야 한다.  
-이 때 각 Product를 builder로 생성하기에는 지나치게 코드가 길어지므로, helper 메서드인 createProduct를 정의해서 사용한다.  
+given에서는 주문에 넣을 각각의 Product 객체를 생성하고 레포지토리에 저장한다.  
+이 때 각 Product를 builder로 생성하면 코드가 지나치게 길어지므로, helper 메서드인 createProduct를 정의해서 사용한다.  
+
 Product를 저장한 후에는 상품들의 상품번호를 이용하여 OrderCreateRequest 객체를 생성한다.  
-when에서는 주문 생성 메서드를 실행하고, then에서는 주문이 정상적으로 생성되었는지를 검증한다.
+when에서는 주문 생성 메서드를 실행하고, then에서는 주문이 정상적으로 생성되었는지를 검증한다.  
+주문 생성 결과인 OrderResponse에 id와 기본 정보들이 담겨 있고 상품의 목록이 제대로 삽입 되었는지 확인한다.
 
 ```java
 package sample.cafekiosk.spring.api.service.order;
@@ -256,7 +258,7 @@ public class OrderService {
 }
 ```
 
-서비스 계층을 구현하는 과정에서 product number를 바탕으로 Product 목록을 조회하는 레포지토리 계층의 메서드가 필요함이 확인되었다.  
+주문을 생성 시 product number를 바탕으로 Product 목록을 조회하는 데이터 접근 로직이 필요하다.  
 이를 위해 다음과 같이 레포지토리에 메서드를 추가하고, 테스트를 작성한다.
 
 ```java
@@ -273,8 +275,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 package sample.cafekiosk.spring.domain.product;
 
 @ActiveProfiles("test")
-//@SpringBootTest
-@DataJpaTest
+@SpringBootTest
 class ProductRepositoryTest {
 
     @Autowired
@@ -324,7 +325,8 @@ class ProductRepositoryTest {
 ```
 
 또한 product 리스트를 바탕으로 Order를 생성하는 메서드도 구현이 필요해졌다.  
-생성일의 경우 LocalDateTime.now()를 내부적으로 사용하게 되면 테스트가 어려워지기 때문에, 이를 외부에 분리하기 위해 매개변수로 생성일을 받는 식으로 메서드를 구성해야 한다.
+생성일의 경우 LocalDateTime.now()를 내부적으로 사용하게 되면 테스트가 어려워진다.  
+이를 외부에 분리하기 위해 매개변수로 생성일을 받도록 구현한다.
 
 ```java
 package sample.cafekiosk.spring.domain.order;
@@ -371,8 +373,9 @@ public class Order extends BaseEntity {
 }
 ```
 
-이와 같이 Order의 팩터리 메서드에는 기본 orderStatus를 설정하고, 총 가격을 계산하고, 날짜를 받아서 저장하는 등의 로직이 들어가기 때문에, 이에 대해서도 단위 테스트가 필요하다.  
-각 부분들에 대한 테스트 코드를 다음과 같이 작성한다.
+Order의 생성자는 기본 주문 상태로 OrderStatus.INIT을 설정하고, 총 가격을 계산하는 등의 로직을 포함하고 있다.  
+단순히 값을 설정하는 것 이상의 작업을 수행하기 때문에 생성자에 대해서도 단위 테스트가 필요하다.  
+기본 주문 상태 설정, 총 가격 계산, 주문 생성일 삽입을 검증하는 각각의 테스트 케이스를 작성한다.
 
 ```java
 package sample.cafekiosk.spring.domain.order;
@@ -441,20 +444,11 @@ class OrderTest {
 }
 ```
 
-Order에 대한 Repository는 다음과 같이 간단하게 구현한다.
-
-```java
-package sample.cafekiosk.spring.domain.order;
-
-@Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
-}
-```
-
 ### Business Layer 테스트 2
 
-이제 OrderServiceTest에서 기존에 작성한 것 외의 케이스에 대한 테스트 코드를 작성해보자.  
-요구사항에서 명확히 드러나진 않았지만, 중복된 음료가 주문되는 상황에 대한 케이스도 고려가 되어야 한다.
+이제 OrderServiceTest에 테스트 케이스를 추가해보자.  
+먼저 중복된 음료를 주문하는 케이스를 추가할 필요가 있다.  
+요구사항에서 명확히 드러나진 않았지만 사용자 시나리오에서 충분히 발생할 수 있는 케이스이다.
 
 ```java
 @DisplayName("중복되는 상품번호 리스트로 주문을 생성할 수 있다.")
@@ -490,11 +484,11 @@ void createOrderWithDuplicateProductNumbers() {
 ```
 
 현재는 위 테스트 케이스가 실패한다.  
-지금은 쿼리의 where ~ in 절로 조건을 넣어서 음료를 조회하고 있을 뿐이라서, 중복된 상황에 대한 고려가 되어있지 않다.
-따라서 테스트가 통과되도록 하기 위해 프로덕션 코드 단에 로직을 추가해야 한다.
+지금은 쿼리의 where ~ in 절로 주문 번호에 해당하는 음료를 조회하고 있을 뿐이라서, 중복된 상황에 대한 고려가 되어있지 않다.
+따라서 테스트에 통과할 수 있도록 프로덕션 코드에 로직을 추가해야 한다.
 
-처음에는 동일하게 중복 제거된 형태로 Product를 조회한 후에, 이를 바탕으로 Map을 만들어서 상품코드를 기준으로 빠르게 상품을 조회할 수 있게 한다.  
-이제 해당 Map을 이용하여 상품 코드 목록에 맞게 음료를 담아서 배열을 만들어주고, 배열을 이용하여 Order를 생성하도록 구현한다.
+처음에는 동일하게 레포지토리를 통해 Product를 조회한 후에, 상품 목록을 바탕으로 Map을 만들어서 상품코드로 상품을 조회할 수 있게 한다.  
+해당 Map을 이용하여 상품 코드 목록에 맞게 음료를 담아서 배열을 만들고, 이를 이용하여 Order를 생성하도록 구현한다.
 
 ```java
 package sample.cafekiosk.spring.api.service.order;
@@ -527,10 +521,9 @@ public class OrderService {
 }
 ```
 
-이제 정상적으로 테스트에 통과하게 된다.  
-다만 이제 OrderServiceTest 안에 테스트가 2개 이상이 되면서, 각자 저장한 데이터가 서로에게 영향을 주게 되었다.  
+이제 중복된 상품 코드에 대한 테스트 케이스에 통과한다.  
+다만 OrderServiceTest 안에 테스트 케이스가 2개 이상이 되면서, 각 케이스에서 저장한 데이터가 서로에게 영향을 주게 되었다.  
 OrderServiceTest에는 @SpringBootTest가 붙어 있는데, 여기에는 기본적으로 트랜잭션 및 롤백이 적용되지 않는다.  
-(레포지토리 테스트에 붙은 @DataJpaTest는 @Transactional이 적용되어 트랜잭션 및 롤백이 적용된다.)  
 따라서 다음과 같이 직접 데이터를 초기화 시켜주는 코드를 @AfterEach에 추가해야 한다.
 
 ```java
@@ -576,9 +569,9 @@ class OrderServiceTest {
 
 이제 전체 어플리케이션이 잘 동작하는지 확인해보자.  
 현재는 컨트롤러 단에 대한 테스트를 작성하지 않았기 때문에, 직접 API를 호출하여 확인해야 한다.  
-IntelliJ에서는 http 파일을 생성하여 간단하게 API를 호출할 수 있다.
+IntelliJ는 http 파일을 통해 간단하게 API를 호출할 수 있도록 지원한다.
 
-```http
+```
 ### http/order.http
 
 ### 주문 신규 생성
@@ -593,7 +586,7 @@ Content-Type: application/json
 }
 ```
 
-```http
+```
 ### http/product.http
 
 ### 판매할 수 있는 상품 조회
@@ -603,11 +596,11 @@ GET localhost:8080/api/v1/products/selling
 ### Business Layer 테스트 3
 
 이번엔 재고와 관련된 요구사항이 추가되었다고 하자.  
-이제 주문 생성 시 재고를 확인하고, 재고를 차감한 후 주문을 생성하는 식으로 동작해야 한다.  
-이 때 재고는 상품 번호를 가지고, 재고는 병 음료와 베이커리 상품에만 적용된다.
+주문 생성 시 재고가 있는지 확인하고, 재고를 차감한 후 주문을 생성해야 한다.  
+재고는 병 음료와 베이커리 상품에만 적용되고, 내부에서 상품 번호를 통해 특정 상품을 가리키게 한다.
 
 > 재고라는 개념을 도입할 경우, 실무에서는 동시성에 대한 고민이 반드시 필요하다.  
-> 이를 optimistic lock / pessimistic lock 등의 개념을 이용하여 우선순위 기반의 락을 주거나 하는 식으로 해결해야 한다.  
+> optimistic lock / pessimistic lock 등의 개념을 이용하여 우선순위 기반의 락을 주는 등의 방식으로 해결해야 한다.  
 > 예제에서는 단순화를 위해 동시성 문제는 배제하고 구현한다.
 
 먼저 다음과 같이 재고가 있는 상품을 주문했을 때의 정상 케이스에 대한 테스트 코드를 작성한다.
