@@ -603,7 +603,7 @@ GET localhost:8080/api/v1/products/selling
 > optimistic lock / pessimistic lock 등의 개념을 이용하여 우선순위 기반의 락을 주는 등의 방식으로 해결해야 한다.  
 > 예제에서는 단순화를 위해 동시성 문제는 배제하고 구현한다.
 
-먼저 다음과 같이 재고가 있는 상품을 주문했을 때의 정상 케이스에 대한 테스트 코드를 작성한다.
+먼저 재고가 있는 상품을 주문했을 때의 정상 케이스에 대한 테스트 코드를 작성한다.
 
 ```java
 @DisplayName("재고와 관련된 상품이 포함되어 있는 주문번호 리스트를 받아 주문을 생성한다.")
@@ -652,8 +652,7 @@ void createOrderWithStock() {
 }
 ```
 
-이 때 새롭게 Stock 이라는 엔티티를 사용했다.  
-Stock 엔티티는 다음과 같이 정의한다.
+이 때 재고를 저장하기 위한 Stock 엔티티는 다음과 같이 정의한다.
 
 ```java
 package sample.cafekiosk.spring.domain.stock;
@@ -686,9 +685,8 @@ public class Stock extends BaseEntity {
 }
 ```
 
-이제 프로덕트 코드를 작성할 차례이다.  
-서비스 단의 로직을 구현하는 과정에서, ProductType에 따라서 재고가 적용되는 제품인지를 확인하는 로직이 필요하다.  
-이를 ProductType enum에 메서드로 정의한다.
+이제 테스트를 통과하는 프로덕션 로직을 구현할 차례이다.  
+먼저 재고가 적용되는 상품 타입인지 확인하는 메서드를 ProductType enum에 구현한다.
 
 ```java
 package sample.cafekiosk.spring.domain.product;
@@ -709,8 +707,7 @@ public enum ProductType {
 }
 ```
 
-로직이 추가되었으므로, 이에 대한 테스트 코드도 작성해야 한다.  
-재고 관련 타입인 경우와, 재고 관련 타입이 아닌 경우를 테스트한다.
+containsStockType()의 테스트 코드의 경우, 재고 적용 상품 타입과 비적용 상품 타입으로 나눠서 테스트 케이스를 구성한다.
 
 ```java
 package sample.cafekiosk.spring.domain.product;
@@ -745,8 +742,7 @@ class ProductTypeTest {
 }
 ```
 
-또한 StockRepository에 productNumber로 재고를 조회하는 로직이 필요하다.  
-마찬가지로 추가한 후, 테스트 코드를 작성한다.
+또한 db로부터 productNumber에 해당하는 Stock을 조회하는 메서드가 필요하므로, 레포지토리에 메서드를 추가한 후 테스트 코드를 작성한다.
 
 ```java
 package sample.cafekiosk.spring.domain.stock;
@@ -789,9 +785,8 @@ class StockRepositoryTest {
 }
 ```
 
-또한 Stock이 가진 재고보다, 현재 주문하려고 하는 상품의 수량이 많은지를 확인하는 로직도 필요하다.  
-이는 Stock 엔티티 내부에 메서드로 구현한다.  
-마찬가지로 테스트 코드가 필요하다.
+또한 Stock에 저장된 재고보다 현재 주문하려고 하는 상품의 수량이 많은지를 확인하는 로직도 필요하다.  
+Stock 엔티티 내부에 메서드로 구현한 뒤 테스트 코드를 작성한다.
 
 ```java
 package sample.cafekiosk.spring.domain.stock;
@@ -865,8 +860,9 @@ class StockTest {
 
 최종적으로 주문을 생성하는 서비스 로직은 다음과 같이 구현된다.  
 재고를 차감하는 로직은 deductStockQuantities 메서드로 분리했다.  
-먼저 주문 상품 목록에서 재고가 적용되는 상품의 상품 번호 목록을 추출했다.  
-이를 이용하여 <주문 번호, Stock> 형태의 맵과 <주문 번호, 주문 수량> 형태의 맵을 만들었다.  
+먼저 주문한 Product 목록에서 재고가 적용되는 상품의 상품 번호 목록을 추출한다.  
+이제 해당 상품 번호들에 매칭되는 Stock 목록을 조회하고, <주문 번호, Stock> 형태의 맵을 만든다.  
+또한 상품 번호 목록을 기반으로 stream counting을 수행하여, <주문 번호, 주문 수량> 형태의 맵을 만든다.  
 이제 상품 번호 목록을 HashSet으로 만들어 중복을 제거하고, 각 상품 번호들을 순회하면서 재고를 차감하는 식으로 구현했다.
 
 > stream을 통해서 데이터를 가공하는 로직의 경우, 별도의 메서드로 분리하면 좋다.  
