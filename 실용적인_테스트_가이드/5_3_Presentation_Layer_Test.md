@@ -1,19 +1,19 @@
 ### Presentation Layer 테스트 1 - 상품 등록 기능 추가하기
 
 Presentation Layer는 가장 먼저 사용자(클라이언트)의 요청을 받는 계층이다.  
-Presentation Layer에서 가장 주요하게 테스트해야 할 것은, 사용자의 요청을 validation 하는 부분이다.  
-이를 위해 하위에 존재하는 Business Layer와 Persistence Layer는 Mocking하고, Presentation Layer에 대한 단위 테스트를 작성하는 형식으로 진행할 것이다.
+Presentation Layer의 테스트에서는 사용자의 요청을 validation 하는 부분을 가장 주요하게 다뤄야 한다.  
+해당 부분에 집중하기 위해 Presentation Layer의 테스트는 단위 테스트 형식으로 작성할 것이다.
+하위에 존재하는 Business Layer와 Persistence Layer는 Mocking 처리하면 된다.  
 
 <img src="./images/5_3_Presentation.png" width=500>
 
-이 때 Mock은 가짜, 대역이라는 의미를 가지고 있다.  
+Mock은 가짜, 대역이라는 의미를 가지고 있다.  
 테스트 대상에만 집중하고 싶을 때, 다른 부분은 가짜로 정상 동작하는 것처럼 처리하는 방식이다.  
 스프링 프레임워크에서는 스프링 MVC 동작을 재현할 수 있도록 지원하는 MockMvc를 제공한다.  
 이를 이용하여 Presentation Layer에 대한 테스트를 작성해보자.
 
-이번에도 요구 사항이 추가되었다고 가정하자.  
-어드민 페이지가 존재해서, 카페 사장님이나 관리자가 상품을 등록하는 것이 가능해야 한다.  
-상품명, 상품 타입, 판매 상태, 가격을 입력받아서 등록하는 기능을 구현한다.
+이번에는 상품 등록 기능에 대한 요구 사항이 추가되었다고 가정하자.  
+상품명, 상품 타입, 판매 상태, 가격을 입력받아서 상품을 등록하는 기능을 구현해야 한다.
 
 먼저 컨트롤러 단에 다음과 같이 api를 추가한다.
 
@@ -35,7 +35,8 @@ public class ProductController {
 }
 ```
 
-컨트롤러 단에서 요청 받는 데이터 타입을 ProductCreateRequest dto로 정의한다.
+컨트롤러 단에서 요청 받는 데이터 타입을 ProductCreateRequest dto로 정의한다.  
+이 때 편리하게 Product 엔티티로 변환할 수 있도록 toEntity 메서드를 정의한다.
 
 ```java
 package sample.cafekiosk.spring.api.controller.product.dto.request;
@@ -56,12 +57,22 @@ public class ProductCreateRequest {
         this.name = name;
         this.price = price;
     }
+
+    public Product toEntity(String nextProductNumber) {
+        return Product.builder()
+                .productNumber(nextProductNumber)
+                .type(type)
+                .sellingStatus(sellingStatus)
+                .name(name)
+                .price(price)
+                .build();
+    }
 }
 ```
 
-ProductCreateRequest에서는 id, productNumber를 제외한 정보를 받는다.  
+ProductCreateRequest에서는 id, productNumber를 제외한 Product 정보를 받는다.  
 productNumber는 가장 최근 생성한 상품의 productNumber에 1을 더한 값을 부여하도록 서비스 단에 구현할 것이다.  
-이를 위해서 레포지토리 단에서 가장 최근의 productNumber를 조회하는 메서드를 추가해야 한다.
+이를 위해 레포지토리 단에 가장 최근의 productNumber를 조회하는 메서드를 추가한다.
 
 ```java
 package sample.cafekiosk.spring.domain.product;
@@ -75,8 +86,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 }
 ```
 
-이에 대한 테스트 코드도 다음과 같이 작성한다.  
-일반적인 정상 케이스와 함께, 저장된 상품이 하나도 없는 경우에 대한 테스트도 추가한다.
+이에 대한 테스트 코드를 작성한다.  
+정상 케이스와 함께, 저장된 상품이 하나도 없는 경우에 대한 테스트도 추가한다.
 
 ```java
 package sample.cafekiosk.spring.domain.product;
@@ -131,9 +142,9 @@ class ProductRepositoryTest {
 }
 ```
 
-이제 서비스 단의 상품 등록 로직을 구현한다.  
+이제 ProductService에 상품 등록 로직을 구현해보자.  
 TDD 방식으로 진행하기 위해 먼저 테스트 코드를 작성한다.  
-레포지토리 단과 동일하게, 기존에 상품이 있는 경우와 없는 경우에 대한 테스트를 함께 작성한다.
+기존에 상품이 있는 경우와 없는 경우에 대한 테스트 케이스를 별도로 작성한다.
 
 ```java
 package sample.cafekiosk.spring.api.service.product;
@@ -225,7 +236,7 @@ class ProductServiceTest {
 ```
 
 이제 해당 테스트를 통과하는 프로덕션 코드를 다음과 같이 작성한다.  
-등록할 productNumber를 생성하는 로직은 별도의 메서드로 분리한다.
+등록할 productNumber를 생성하는 로직은 별도의 private 메서드로 분리한다.
 
 ```java
 package sample.cafekiosk.spring.api.service.product;
