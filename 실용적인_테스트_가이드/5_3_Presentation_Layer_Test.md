@@ -279,9 +279,9 @@ CQRS는 데이터 저장소의 Command(쓰기)와 Query(읽기) 작업을 분리
 쓰기 작업과 읽기 작업을 분리하면, 각 작업 별로 요청을 보낼 database를 분리하는 것이 가능해진다.  
 이를 통해 한 쪽에서 장애가 발생했더라도, 다른 종류의 작업에는 영향을 미치지 않도록 할 수 있다.
 
-스프링에서는 @Transactional의 readOnly 옵션을 통해 각 작업을 분리할 수 있다.  
-이 때 JPA에서는 readOnly로 트랜잭션이 적용된 경우, 변경 감지를 위한 스냅샷 저장 등을 하지 않기 때문에 성능 면에서도 이점이 있다.  
-하나의 서비스 안에서 읽기 작업과 쓰기 작업이 동시에 존재한다면, 클래스 단에서 기본으로 readOnly=true로 적용하고, 메서드에서 필요한 경우에 개별적으로 쓰기가 가능하게 적용하는 편이 좋다.
+스프링에서는 @Transactional의 readOnly 옵션으로 해당 작업이 읽기 전용인지를 지정할 수 있다.  
+JPA에서는 readOnly 트랜잭션이 적용된 경우, 변경 감지를 위한 스냅샷 저장 등을 하지 않기 때문에 성능 면에서 이점이 있다.  
+하나의 서비스 안에서 읽기 작업과 쓰기 작업이 동시에 존재한다면, 클래스 단에서 기본으로 readOnly=true로 적용하고, 메서드에서 개별적으로 쓰기가 가능하게 적용하는 편이 좋다.
 
 ```java
 package sample.cafekiosk.spring.api.service.product;
@@ -304,17 +304,15 @@ public class ProductService {
 }
 ```
 
-이와 같이 readOnly를 적용했는지에 따라서 메서드의 동작이 달라지므로, 테스트 코드에서 트랜잭션이 의도한 대로 적용되었는지 테스트하는게 좋다.  
-이를 위해서 가능하면 테스트 클래스에 일괄적으로 @Transactional을 적용하지는 않는게 좋다.  
-테스트 클래스에 @Transactional을 적용하면, 대상 메서드의 트랜잭션을 테스트하는 것이 불가능하다.
-
 ### Presentation Layer 테스트 2 - validation 적용, controller 테스트
 
 이제 본격적으로 컨트롤러 단에 대한 테스트를 작성해보자.  
-컨트롤러 하위의 계층들을 모킹처리 하기 위해 Mockito 라이브러리를 사용할 것이다.  
+테스트에서는 Mockito 라이브러리를 사용하여 컨트롤러 하위의 계층들을 Mocking 처리할 것이다.  
+
 먼저 테스트 클래스에 @WebMvcTest를 붙여서, 컨트롤러 단의 테스트를 위한 최소한의 빈만 등록하도록 한다.  
-다만 @WebMvcTest를 붙일 경우 Auditing 기능을 위한 빈들이 정상 등록 되지 않아서 테스트가 불가능한 문제가 있다.  
-따라서 Spring Application에는 @EnableJpaAuditing을 제거하고, Auditing을 붙인 Config를 별도로 작성하여 등록한다.
+다만 @WebMvcTest를 붙일 경우 Auditing 기능을 위한 빈들이 정상 등록 되지 않는 문제가 있다.  
+이로 인해 SpringApplication에 @EnableJpaAuditing이 붙어있는 경우 테스트 실행 과정에서 스프링 서버를 띄우는데 실패한다.  
+이를 해결하기 위해 @EnableJpaAuditing이 붙은 Config를 별도로 등록하여, 실제 앱 실행 시에만 Auditing 기능을 사용하도록 설정한다.
 
 ```java
 package sample.cafekiosk.spring;
@@ -337,11 +335,12 @@ public class JpaAuditingConfig {
 ```
 
 이제 테스트 클래스를 작성해보자.  
-먼저 컨트롤러 내에서 사용하는 하위 계층(ProductService)은 @MockBean을 통해 Mock 객체로 등록해야 한다.  
-테스트 클래스에 @WebMvcTest를 붙이면 컨트롤러 하위의 빈들이 자동 등록되지 않기 때문에, MockBean을 직접 등록하지 않으면 예외가 발생한다.
+컨트롤러 내에서 사용하는 하위 계층(ProductService)은 @MockBean을 통해 Mock 객체로 등록한다.  
+테스트 클래스에 @WebMvcTest를 붙이면 컨트롤러 하위의 빈들이 컨테이너에 등록되지 않는다.  
+따라서 테스트 내에서 MockBean을 직접 등록하지 않으면 예외가 발생한다.
 
-테스트 메서드에서는 주입받은 MockMvc를 이용해서 임의로 api를 호출하는 식으로 테스트를 진행할 것이다.  
-mockMvc.perform을 통해서 api에 요청을 보내는 것처럼 테스트를 할 수 있다.  
+테스트 메서드에서는 주입받은 MockMvc를 이용해서 테스트를 진행한다.  
+mockMvc.perform을 통해서 api 요청을 보내는 것처럼 테스트를 할 수 있다.  
 post 요청에서는 .content()를 통해 request body를 넘길 수 있는데, ObjectMapper를 통해 직접 문자열화 해서 넘겨줘야 한다.  
 이렇게 요청을 보낸 것에 대해서 andExpect 절에서 응답 상태 코드를 검증한다.
 
