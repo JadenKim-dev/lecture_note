@@ -603,55 +603,6 @@ GET localhost:8080/api/v1/products/selling
 > optimistic lock / pessimistic lock 등의 개념을 이용하여 우선순위 기반의 락을 주는 등의 방식으로 해결해야 한다.  
 > 예제에서는 단순화를 위해 동시성 문제는 배제하고 구현한다.
 
-먼저 재고가 있는 상품을 주문했을 때의 정상 케이스에 대한 테스트 코드를 작성한다.
-
-```java
-@DisplayName("재고와 관련된 상품이 포함되어 있는 주문번호 리스트를 받아 주문을 생성한다.")
-@Test
-void createOrderWithStock() {
-    // given
-    LocalDateTime registeredDateTime = LocalDateTime.now();
-
-    Product product1 = createProduct(BOTTLE, "001", 1000);
-    Product product2 = createProduct(BAKERY, "002", 3000);
-    Product product3 = createProduct(HANDMADE, "003", 5000);
-    productRepository.saveAll(List.of(product1, product2, product3));
-
-    Stock stock1 = Stock.create("001", 2);
-    Stock stock2 = Stock.create("002", 2);
-    stockRepository.saveAll(List.of(stock1, stock2));
-
-    OrderCreateRequest request = OrderCreateRequest.builder()
-            .productNumbers(List.of("001", "001", "002", "003"))
-            .build();
-
-    // when
-    OrderResponse orderResponse = orderService.createOrder(request, registeredDateTime);
-
-    // then
-    assertThat(orderResponse.getId()).isNotNull();
-    assertThat(orderResponse)
-            .extracting("registeredDateTime", "totalPrice")
-            .contains(registeredDateTime, 10000);
-    assertThat(orderResponse.getProducts()).hasSize(4)
-            .extracting("productNumber", "price")
-            .containsExactlyInAnyOrder(
-                    tuple("001", 1000),
-                    tuple("001", 1000),
-                    tuple("002", 3000),
-                    tuple("003", 5000)
-            );
-
-    List<Stock> stocks = stockRepository.findAll();
-    assertThat(stocks).hasSize(2)
-            .extracting("productNumber", "quantity")
-            .containsExactlyInAnyOrder(
-                    tuple("001", 0),
-                    tuple("002", 1)
-            );
-}
-```
-
 이 때 재고를 저장하기 위한 Stock 엔티티는 다음과 같이 정의한다.
 
 ```java
@@ -785,7 +736,7 @@ class StockRepositoryTest {
 }
 ```
 
-또한 Stock에 저장된 재고보다 현재 주문하려고 하는 상품의 수량이 많은지를 확인하는 로직도 필요하다.  
+다음으로 현재 주문하려고 하는 수량보다 재고가 많은지를 확인하고, 재고를 차감하는 로직이 필요하다.  
 Stock 엔티티 내부에 메서드로 구현한 뒤 테스트 코드를 작성한다.
 
 ```java
@@ -858,15 +809,65 @@ class StockTest {
 }
 ```
 
-최종적으로 주문을 생성하는 서비스 로직은 다음과 같이 구현된다.  
-재고를 차감하는 로직은 deductStockQuantities 메서드로 분리했다.  
-먼저 주문한 Product 목록에서 재고가 적용되는 상품의 상품 번호 목록을 추출한다.  
-이제 해당 상품 번호들에 매칭되는 Stock 목록을 조회하고, <주문 번호, Stock> 형태의 맵을 만든다.  
-또한 상품 번호 목록을 기반으로 stream counting을 수행하여, <주문 번호, 주문 수량> 형태의 맵을 만든다.  
-이제 상품 번호 목록을 HashSet으로 만들어 중복을 제거하고, 각 상품 번호들을 순회하면서 재고를 차감하는 식으로 구현했다.
+최종적으로 주문을 생성하는 서비스 로직을 구현해보자.  
+먼저 재고가 있는 상품을 주문했을 때의 정상 케이스에 대한 테스트 코드를 작성한다.
 
-> stream을 통해서 데이터를 가공하는 로직의 경우, 별도의 메서드로 분리하면 좋다.  
-> 이를 통해 해당 로직에 대해서 명명해 두면, 이후에 로직을 이해하기가 훨씬 수월하다.
+```java
+@DisplayName("재고와 관련된 상품이 포함되어 있는 주문번호 리스트를 받아 주문을 생성한다.")
+@Test
+void createOrderWithStock() {
+    // given
+    LocalDateTime registeredDateTime = LocalDateTime.now();
+
+    Product product1 = createProduct(BOTTLE, "001", 1000);
+    Product product2 = createProduct(BAKERY, "002", 3000);
+    Product product3 = createProduct(HANDMADE, "003", 5000);
+    productRepository.saveAll(List.of(product1, product2, product3));
+
+    Stock stock1 = Stock.create("001", 2);
+    Stock stock2 = Stock.create("002", 2);
+    stockRepository.saveAll(List.of(stock1, stock2));
+
+    OrderCreateRequest request = OrderCreateRequest.builder()
+            .productNumbers(List.of("001", "001", "002", "003"))
+            .build();
+
+    // when
+    OrderResponse orderResponse = orderService.createOrder(request, registeredDateTime);
+
+    // then
+    assertThat(orderResponse.getId()).isNotNull();
+    assertThat(orderResponse)
+            .extracting("registeredDateTime", "totalPrice")
+            .contains(registeredDateTime, 10000);
+    assertThat(orderResponse.getProducts()).hasSize(4)
+            .extracting("productNumber", "price")
+            .containsExactlyInAnyOrder(
+                    tuple("001", 1000),
+                    tuple("001", 1000),
+                    tuple("002", 3000),
+                    tuple("003", 5000)
+            );
+
+    List<Stock> stocks = stockRepository.findAll();
+    assertThat(stocks).hasSize(2)
+            .extracting("productNumber", "quantity")
+            .containsExactlyInAnyOrder(
+                    tuple("001", 0),
+                    tuple("002", 1)
+            );
+}
+```
+
+프로덕트 코드는 다음과 같이 구현된다.  
+재고를 차감하는 로직은 deductStockQuantities 메서드로 분리하고, 이를 createOrder에서 호출한다.  
+deductStockQuantities에서는 먼저 주문한 Product 목록에서 재고가 적용되는 상품의 상품 번호 목록을 추출한다.  
+해당 상품 번호들에 매칭되는 Stock 목록을 조회하고, <주문 번호, Stock> 형태의 맵을 만든다.  
+또한 상품 번호 목록을 기반으로 stream counting을 수행하여, <주문 번호, 주문 수량> 형태의 맵을 만든다.  
+이제 상품 번호 목록을 HashSet으로 만들어 중복을 제거하고, 각 상품 번호들을 순회하면서 재고를 차감하는 식으로 메서드를 구현한다.
+
+> stream을 통해서 데이터를 가공하는 로직의 경우 별도의 메서드로 분리하면 좋다.  
+> 메서드의 이름으로 해당 로직을 명명해 둠으로써, 이후에 코드를 읽는 사람들이 보다 수월하게 로직을 이해할 수 있다.
 
 ```java
 package sample.cafekiosk.spring.api.service.order;
@@ -1006,8 +1007,8 @@ class OrderServiceTest {
 }
 ```
 
-만약 @Transactional을 테스트 클래스에 붙이면, 각 테스트 케이스에 대해서 트랜잭션이 시작되고, 테스트가 끝나면 롤백되어 데이터가 초기화된다.  
-따라서 위와 같이 데이터를 일일이 초기화할 필요가 없어지기 때문에 매우 간편하다.  
-하지만 주의해야 할 점은, 테스트 단에서 @Transactional을 붙이게 되면 테스트 대상 메서드(예시에서는 서비스 메서드)에 트랜잭션이 적용되어 있는지가 검증되지 않는다는 것이다.  
-예를 들어 위 예시에서 OrderService에 @Transactional을 붙이지 않았다고 하더라도, OrderServiceTest에서 트랜잭션을 적용하기 때문에 테스트에는 통과하게 된다.  
-만약 OrderServiceTest에서 트랜잭션을 적용하지 않았다면, JPA의 변경 감지 기능이 제대로 작동하지 않아서 테스트에 실패하여 오류를 잡아낼 수 있었을 것이다.
+만약 @Transactional을 테스트 클래스에 붙이면, 각 테스트 케이스에 대해서 트랜잭션이 시작되고 테스트가 끝나면 롤백된다.  
+따라서 위와 같이 데이터를 일일이 초기화할 필요가 없어져서 매우 간편하다.  
+하지만 테스트 단에 @Transactional을 붙이면 테스트 대상 메서드(예시에서는 서비스 메서드)에 트랜잭션이 제대로 적용되었는지를 검증할 수 없다.  
+예를 들어 위 예시에서 OrderService에 @Transactional을 붙이지 않았다고 하더라도, OrderServiceTest에서 트랜잭션을 적용하기 때문에 테스트는 통과한다.  
+실무에서도 @Transactional을 테스트 클래스에 붙이는 경우가 많긴 하지만, 언제나 위 문제점을 주의하고 사용해야 한다.
