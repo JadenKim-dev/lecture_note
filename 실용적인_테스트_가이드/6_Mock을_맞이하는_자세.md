@@ -1,10 +1,10 @@
 ### Mockito로 Stubbing 하기
 
-이번에는 새로운 요구사항을 구현해보면서, Mock을 언제 어떻게 사용하는지에 대해서 알아보자.  
-특정 날짜의 매출 합계를 메일로 전송하는 기능에 대한 니즈가 있다고 해보자.
+이번에는 새로운 요구사항을 구현해보면서, Mock을 언제 어떻게 사용하면 좋은지 알아보자.
 
-위 기능을 위해서는 먼저 db로부터 특정 날짜 구간의 결제 완료된 주문을 조회하는 작업이 필요하다.  
-레포지토리 단에 jpql을 이용하여 해당 메서드를 구현한다.
+특정 날짜의 매출 합계를 메일로 전송하는 기능을 추가해야 한다고 해보자.  
+이를 위해서는 db로부터 특정 기간 동안 결제 완료된 주문을 조회할 수 있어야 한다.  
+레포지토리 단에 jpql을 이용하여 다음과 같이 메서드를 정의한다.
 
 ```java
 package sample.cafekiosk.spring.domain.order;
@@ -21,8 +21,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
 이제 주문 통계를 계산하고 메일을 전송하는 OrderStatisticsService를 구현한다.
 
-> 메일 전송 처럼 외부 API를 사용하는 로직의 경우, 트랜잭션을 걸지 않는 것이 좋다.  
-> 트랜잭션을 걸었는데 외부 API 응답이 늦어지면, 늦어진 시간만큼 오래 커넥션을 점유하고 있게 된다.
+> 메일 전송과 같이 외부 API를 사용하는 로직의 경우, 트랜잭션을 걸지 않는 것이 좋다.  
+> 트랜잭션을 걸었는데 외부 API 응답이 늦어지면, 늦어진 시간만큼 커넥션을 점유하게 된다.
 
 ```java
 package sample.cafekiosk.spring.api.service.order;
@@ -35,7 +35,7 @@ public class OrderStatisticsService {
     private final MailService mailService;
 
     public boolean sendOrderStatisticsMail(LocalDate orderDate, String email) {
-        // 해당 일자에 결제완료된 주문들을 가져와서
+        // 해당 일자에 결제 완료된 주문들을 가져와서
         List<Order> orders = orderRepository.findOrdersBy(
             orderDate.atStartOfDay(),
             orderDate.plusDays(1).atStartOfDay(),
@@ -65,8 +65,8 @@ public class OrderStatisticsService {
 }
 ```
 
-이 때 MailService에서는 MailSendClient에 메일 전송을 요청하고, 관련된 히스토리를 남기도록 구현해보자.  
-메일 전송 히스토리는 MailSendHistory 엔티티로 저장하도록 한다.
+MailService에서는 MailSendClient에 메일 전송을 요청하고, 관련된 히스토리를 남기도록 구현해보자.  
+메일 전송 히스토리는 MailSendHistory 엔티티로 저장한다.
 
 ```java
 package sample.cafekiosk.spring.domain.history.mail;
@@ -106,7 +106,7 @@ public interface MailSendHistoryRepository extends JpaRepository<MailSendHistory
 }
 ```
 
-MailSendClient는 아래와 같이 간단하게만 구현한다.
+MailSendClient는 아래와 같이 간단하게만 구현한다.  
 
 ```java
 package sample.cafekiosk.spring.client.mail;
@@ -117,7 +117,7 @@ public class MailSendClient {
 
     public boolean sendEmail(String fromEmail, String toEmail, String subject, String content) {
         log.info("메일 전송");
-        throw new IllegalArgumentException("메일 전송");
+        return true;
     }
 
 }
