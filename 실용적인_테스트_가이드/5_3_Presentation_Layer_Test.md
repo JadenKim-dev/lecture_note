@@ -342,7 +342,7 @@ public class JpaAuditingConfig {
 테스트 메서드에서는 주입받은 MockMvc를 이용해서 테스트를 진행한다.  
 mockMvc.perform을 통해서 api 요청을 보내는 것처럼 테스트를 할 수 있다.  
 post 요청에서는 .content()를 통해 request body를 넘길 수 있는데, ObjectMapper를 통해 직접 문자열화 해서 넘겨줘야 한다.  
-이렇게 요청을 보낸 것에 대해서 andExpect 절에서 응답 상태 코드를 검증한다.
+이렇게 요청을 보낸 것에 대하여 andExpect 절에서 응답 상태 코드를 검증한다.
 
 ```java
 package sample.cafekiosk.spring.api.controller.product;
@@ -478,10 +478,11 @@ public class ApiResponse<T> {
 }
 ```
 
-예외 응답에 대해서는, @ControllerAdvice를 이용하여 예외가 발생했을 때 catch하여 응답을 보내주는 식으로 구현할 수 있다.  
+요청 처리 과정에서 예외가 발생했을 경우에는 @ControllerAdvice를 적용한 Advice 객체에서 전역적으로 catch 해서 예외 응답을 보내주도록 구현할 수 있다.  
 spring validation에 실패할 경우 BindException이 발생하므로, 해당 예외에 대해서 Bad Request 응답을 보내도록 구현한다.  
-메서드에 @ResponseStatus(HttpStatus.BAD_REQUEST)를 달면, 예외가 발생했을 때 400 상태 코드로 에러 응답을 보내게 된다.  
-메서드 내에서는 e.getBindingResult()를 통해 어떤 validation에 실패했는지를 추출해서, 메시지에 담아서 응답을 보낸다.
+Advice 객체의 메서드에  @ExceptionHandler(BindException.class)를 적용하면 해당 예외가 발생했을 때 메서드가 실행된다.  
+이 때 메서드에 @ResponseStatus(HttpStatus.BAD_REQUEST)를 추가로 달면, 반환 값을 response body에 담아서 400 상태 코드로 에러 응답을 보낸다.  
+메서드 내에서는 e.getBindingResult()를 통해 어떤 validation에 실패했는지를 추출해서, ApiResponse의 메시지에 담아 반환한다.
 
 ```java
 package sample.cafekiosk.spring.api;
@@ -615,7 +616,7 @@ class ProductControllerTest {
 ```
 
 지금까지는 post 요청에 대한 테스트 코드를 작성했다.  
-이번에는 판매 중인 상품을 조회하는 get 요청에 대한 테스트 코드도 추가해서 작성해보자.  
+이번에는 판매 중인 상품을 조회하는 get 요청에 대한 테스트 코드를 추가로 작성해보자.  
 먼저 controller의 메서드에서 ApiResponse로 감싸서 응답 객체를 반환하도록 수정한다.
 
 ```java
@@ -638,7 +639,7 @@ public class ProductController {
 ```
 
 이제 mockMvc를 이용하여 get 요청을 보내고, 이에 대한 결과를 검증한다.  
-이 때 mockito 라이브러리를 사용하여, 컨트롤러 내부에서 productService.getSellingProducts()를 호출하면 적절히 빈 배열을 반환하도록 모킹한다.
+이 때 productService를 Mocking하여 getSellingProducts()를 호출하면 빈 배열을 반환하도록 한다.
 
 ```java
 @DisplayName("판매 상품을 조회한다.")
@@ -665,14 +666,16 @@ void getSellingProducts() throws Exception {
 ### Spring Validation 적용 시 주의할 점
 
 validation annotation을 적용할 때 주의할 점이 있다.  
-먼저 문자열에 대한 validation에는 총 2개의 어노테이션을 적용할 수 있다. - @NotNull, @NotEmpty, @NotBlank  
+
+문자열에 대한 validation에는 총 3개의 어노테이션을 적용할 수 있다. - @NotNull, @NotEmpty, @NotBlank  
 먼저 @NotNull의 경우 Null만 아니면 "", " " 등의 문자열은 모두 통과 시킨다.  
 @NotEmpty는 빈 문자열("")는 막지만, 공백이 들어간 문자열(" ")은 통과한다.  
 @NotBlank는 빈 문자열("")과 공백 문자열(" ")을 모두 막는다.  
-실무에서는 공백을 통과시킬 이유가 보통 없기 때문에, @NotBlank를 많이 사용한다.
+보통의 상황에서는 공백을 통과시킬 이유가 없기 때문에, @NotBlank를 많이 사용한다.
 
-또한 validation에서의 관심사 분리에 대해서도 고려해야 할 부분이 있다.  
-예를 들어 name 필드가 NotBlank인 동시에, 최대 길이를 20자로 제한하고 싶다면 다음과 같이 어노테이션으로 처리하는 것도 가능하다.
+또한 validation의 관심사 분리도 고려해 보면 좋다.  
+예를 들어 name 필드를 NotBlank + 최대 길이 20자로 제한하고 싶다고 하자.  
+이 경우 컨트롤러 단의 request dto에 다음과 같이 어노테이션으로 처리할 수 있다.
 
 ```java
 @NotBlank
@@ -680,14 +683,14 @@ validation annotation을 적용할 때 주의할 점이 있다.
 private String name;
 ```
 
-하지만 과연 컨트롤러 단에서 최대 길이 제한과 같은 부분까지 검증을 맡는 것이 적절한지는 고민해 볼 필요가 있다.  
-Null이 아니라거나 공백만 들어간 문자열인 경우와 같이 기본적인 문자열로써의 조건을 체크하는 것은 컨트롤러 단에서 수행하는 것이 맞다.  
-하지만 최대 길이 20자 제한은 도메인 정책과 관련된 검증이기 때문에, 서비스 계층이나 도메인 엔티티와 같이 내부 계층에서 검증하는 것이 더 나을 수 있다.
+하지만 컨트롤러 단에서 최대 길이 제한까지 검증하는 것이 적절한지 고민해 볼 필요가 있다.  
+Null 이거나 공백 문자열인 경우와 같이 기본적인 문자열로써의 조건을 체크하는 것은 컨트롤러 단에서 수행하는 것이 맞다.  
+하지만 최대 길이 20자 제한은 도메인 정책과 관련된 검증이기 때문에, 서비스 계층이나 도메인 엔티티와 같이 내부 계층에서 검증하는 것이 더 적절하다.
 
 ### OrderController 테스트 작성하기
 
-이번에는 OrderController에 대한 테스트 코드를 추가로 작성해보자.  
-먼저 OrderCreateRequest의 productNumbers에 NotEmpty validation을 추가한다.  
+이번에는 OrderController의 주문 생성 API에 validation을 적용하고 테스트 코드를 작성해보자.  
+먼저 OrderCreateRequest의 productNumbers에 @NotEmpty 어노테이션을 추가한다.  
 이를 통해 productNumbers에 빈 배열을 넣은 주문 생성 요청을 막을 수 있다.
 
 ```java
@@ -703,8 +706,8 @@ public class OrderCreateRequest {
 }
 ```
 
-이제 OrderController 코드를 일부 수정한다.  
-ProductController와 동일하게 ApiResponse로 감싸서 반환하도록 수정하고, validation이 적용되도록 @Valid를 매개변수에 추가로 적용한다.
+이제 validation이 적용되도록 OrderController의 주문 생성 메서드 매개변수에 @Valid를 적용한다.
+또한 주문 생성 요청 시 ApiResponse로 감싸서 반환하도록 수정한다. 
 
 ```java
 package sample.cafekiosk.spring.api.controller.order;
