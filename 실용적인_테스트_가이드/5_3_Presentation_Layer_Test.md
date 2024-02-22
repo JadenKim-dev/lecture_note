@@ -805,11 +805,11 @@ public ApiResponse<OrderResponse> createOrder(@Valid @RequestBody OrderCreateReq
 ```
 
 하지만 이렇게 되면 service 단에서 controller 패키지 안에 있는 dto를 참조하게 된다.  
-이는 하위 계층이 상위 계층을 참조하는 것으로, 불필요한 의존성이 생겼다.  
-만약 해당 서비스를 여러 가지 컨트롤러에서 동시에 사용한다면, 이로 인해 강제로 다른 컨트롤러에서도 동일한 dto를 참조하게 되는 문제가 있다.
+이는 하위 계층이 상위 계층을 참조하는 것으로, 불필요한 의존성이 생긴 것이다.  
+만약 해당 서비스를 여러 컨트롤러에서 사용한다면, 다른 컨트롤러에서도 강제로 동일한 dto를 참조해야 한다.
 
 이를 해결하기 위해 Service 계층을 위한 dto를 별도로 분리하는 것이 좋다.  
-이렇게 할 경우 컨트롤러 단에서 수행하는 validation을 위한 어노테이션을 제거할 수 있다.
+이렇게 할 경우 서비스 dto에서는 컨트롤러 단에서만 필요한 validation 어노테이션을 제거할 수 있다.
 
 ```java
 package sample.cafekiosk.spring.api.service.order.request;
@@ -817,6 +817,7 @@ package sample.cafekiosk.spring.api.service.order.request;
 @Getter
 @NoArgsConstructor
 public class OrderCreateServiceRequest {
+
     private List<String> productNumbers;
 
     @Builder
@@ -826,7 +827,7 @@ public class OrderCreateServiceRequest {
 }
 ```
 
-컨트롤러의 dto 내에는 toServiceRequest 메서드를 추가로 정의해서, 편리하게 하위 계층의 dto로 변환할 수 있게 한다.
+컨트롤러의 dto 내에는 toServiceRequest 메서드를 추가해서, 하위 계층의 dto로 편리하게 변환할 수 있도록 한다.
 
 ```java
 package sample.cafekiosk.spring.api.controller.order.request;
@@ -850,8 +851,7 @@ public class OrderCreateRequest {
 }
 ```
 
-이제 컨트롤러 계층의 코드는 다음과 같아진다.  
-서비스 계층의 메서드를 호출할 때, request의 toServiceRequest를 호출하여 서비스 계층의 dto로 변환 후 넘겨준다.
+이제 컨트롤러에서 서비스의 메서드를 호출할 때, request를 서비스 dto로 변환한 후 넘겨주도록 하면 된다.
 
 ```java
 @PostMapping("/api/v1/orders/new")
@@ -861,7 +861,8 @@ public ApiResponse<OrderResponse> createOrder(@Valid @RequestBody OrderCreateReq
 }
 ```
 
-ProductCreateRequest에 대해서도 동일하게 리팩토링 하자.
+주문 생성 요청에 대한 dto인 ProductCreateRequest도 동일하게 리팩토링 하자.  
+validation 어노테이션들은 컨트롤러 dto에 위치시키고, toEntity()는 서비스 dto에 위치시킨다.
 
 ```java
 package sample.cafekiosk.spring.api.controller.product.dto.request;
@@ -869,7 +870,19 @@ package sample.cafekiosk.spring.api.controller.product.dto.request;
 @Getter
 @NoArgsConstructor
 public class ProductCreateRequest {
-    ...
+
+    @NotNull(message = "상품 타입은 필수입니다.")
+    private ProductType type;
+
+    @NotNull(message = "상품 판매상태는 필수입니다.")
+    private ProductSellingStatus sellingStatus;
+
+    @NotBlank(message = "상품 이름은 필수입니다.")
+    private String name;
+
+    @Positive(message = "상품 가격은 양수여야 합니다.")
+    private int price;
+
     public ProductCreateServiceRequest toServiceRequest() {
         return ProductCreateServiceRequest.builder()
             .type(type)
